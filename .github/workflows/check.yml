@@ -1,0 +1,19 @@
+---
+name: 🧪 CI - Check
+on:
+  pull_request:
+    branches-ignore:
+      - main
+jobs:
+  check:
+    name: 🧪 Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+
+      - name: Env & Deps
+        uses: cyberskill-world/.github/actions/env-deps@main
+
+      - name: Lint
+        uses: cyberskill-world/.github/actions/lint@main

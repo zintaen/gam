@@ -1,0 +1,68 @@
+---
+name: 🚀 CI - Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+
+      - name: Env & Deps
+        uses: cyberskill-world/.github/actions/env-deps@main
+
+      - name: Build Application
+        run: pnpm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Release (Linux & Mac)
+        uses: softprops/action-gh-release@v2
+        if: matrix.os != 'windows-latest'
+        with:
+          files: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.dmg
+            dist/*.zip
+            release/**/*.AppImage
+            release/**/*.deb
+            release/**/*.dmg
+            release/**/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Release (Windows)
+        uses: softprops/action-gh-release@v2
+        if: matrix.os == 'windows-latest'
+        with:
+          files: |
+            dist/*.exe
+            release/**/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  homebrew:
+    name: 🍺 Bump Homebrew Cask
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Homebrew tag
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: gam
+          homebrew-tap: zintaen/homebrew-tap
+          download-url: https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM-${{ github.ref_name }}-arm64-mac.zip
+          commit-message: "brew: update gam to ${{ github.ref_name }}"
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}

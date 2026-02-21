@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;"
+        />
+        <meta
+            name="description"
+            content="GAM — Git Alias Manager. A professional desktop GUI for managing Git aliases across platforms."
+        />
+
+        <!-- Open Graph / Social SEO -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://github.com/zintaen/gam" />
+        <meta property="og:title" content="GAM — Git Alias Manager" />
+        <meta
+            property="og:description"
+            content="A professional desktop GUI for managing Git aliases across Windows, Linux, and macOS."
+        />
+        <!-- We use the raw githubusercontent image as a reliable fallback preview image without hosting -->
+        <meta
+            property="og:image"
+            content="https://raw.githubusercontent.com/zintaen/gam/main/docs/screenshots/dashboard.png"
+        />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:url" content="https://github.com/zintaen/gam" />
+        <meta name="twitter:title" content="GAM — Git Alias Manager" />
+        <meta
+            name="twitter:description"
+            content="A professional desktop GUI for managing Git aliases across Windows, Linux, and macOS."
+        />
+        <meta
+            name="twitter:image"
+            content="https://raw.githubusercontent.com/zintaen/gam/main/docs/screenshots/dashboard.png"
+        />
+
+        <title>GAM — Git Alias Manager</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            body {
+                background-color: #0f172a;
+                /* slate-900 */
+                margin: 0;
+                overflow: hidden;
+                color: #94a3b8;
+                /* slate-400 */
+                font-family: 'Inter', sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+            }
+
+            .skeleton-app {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                height: 100%;
+                padding: 24px;
+                box-sizing: border-box;
+                gap: 16px;
+            }
+
+            .skeleton-header {
+                height: 48px;
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .skeleton-box {
+                background-color: #1e293b;
+                /* slate-800 */
+                border-radius: 8px;
+                animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+
+            .skeleton-title {
+                width: 200px;
+                height: 32px;
+            }
+
+            .skeleton-search {
+                width: 300px;
+                height: 40px;
+            }
+
+            .skeleton-content {
+                flex: 1;
+                width: 100%;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+
+                50% {
+                    opacity: 0.5;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="root">
+            <div class="skeleton-app">
+                <div class="skeleton-header">
+                    <div class="skeleton-box skeleton-title"></div>
+                    <div class="skeleton-box skeleton-search"></div>
+                </div>
+                <div class="skeleton-box skeleton-content"></div>
+            </div>
+        </div>
+        <script type="module" src="/src/main.tsx"></script>
+    </body>
+</html>

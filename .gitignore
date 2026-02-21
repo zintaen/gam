@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-electron
+release
+.agent
+coverage
+.DS_Store
+package-lock.json
+.simple-git-hooks.json
+.env
