@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AliasForm } from '../../src/components/AliasForm';
+import { AliasForm } from '#/components/AliasForm';
 
 describe('aliasForm', () => {
     const mockOnSave = vi.fn();

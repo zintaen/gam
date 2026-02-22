@@ -7,7 +7,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/zintaen/gam?style=social)](https://github.com/zintaen/gam)
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Built with Electron](https://img.shields.io/badge/built%20with-Electron-47848F.svg?logo=electron)](https://www.electronjs.org/)
+[![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri-FFC131.svg?logo=tauri)](https://tauri.app/)
 [![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
 
@@ -114,7 +114,7 @@ pnpm install
 pnpm dev
 ```
 
-The Electron window opens automatically.
+The Tauri window opens automatically (first run compiles Rust backend ~2-3 min).
 
 ---
 
@@ -131,15 +131,13 @@ pnpm test -- --coverage
 pnpm test:watch
 ```
 
-**Test coverage (8 suites, 82 tests):**
+**Test coverage (6 suites, 59 tests):**
 
 | Suite                        | Tests | Covers                                                   |
 | ---------------------------- | ----- | -------------------------------------------------------- |
-| `git-service.test.ts`        | 18    | Alias parsing, command/name validation                   |
-| `types.test.ts`              | 7     | TypeScript interface verification                        |
+| `types.test.ts`              | 6     | TypeScript interface verification                        |
 | `suggestion-service.test.ts` | 18    | All 5 suggestion schemes, conflict filtering, edge cases |
-| `gitalias-library.test.ts`   | 11    | Library data integrity, search, category filtering       |
-| `file-service.test.ts`       | 5     | JSON import and export flows                             |
+| `gitalias-library.test.ts`   | 14    | Library data integrity, search, category filtering       |
 | `App.test.tsx`               | 2     | Main application integration layout                      |
 | `AliasForm.test.tsx`         | 13    | Form validation, library picker, textarea, edit mode     |
 | `AliasList.test.tsx`         | 6     | Table rendering, sort/filter logic, scope interactions   |
@@ -150,16 +148,19 @@ pnpm test:watch
 
 ```
 gam/
-├── electron/                # Electron main process
-│   ├── main.ts              # Window creation, app lifecycle
-│   ├── preload.ts           # Secure IPC bridge (contextBridge)
-│   ├── ipc-handlers.ts      # IPC channel registry
-│   └── services/
-│       ├── git-service.ts   # Git config CLI wrapper (CRUD)
-│       ├── backup-service.ts # .gitconfig backup/restore
-│       └── file-service.ts  # JSON import/export
-├── src/                     # React renderer process
+├── src-tauri/               # Tauri backend (Rust)
+│   ├── src/
+│   │   ├── lib.rs           # App entry point, plugin registration
+│   │   ├── commands.rs      # 12 Tauri command handlers
+│   │   ├── git_service.rs   # Git config CLI wrapper (CRUD)
+│   │   ├── file_service.rs  # JSON import/export
+│   │   ├── ranking_service.rs # Usage scoring & ranking
+│   │   └── known_repos_service.rs # Repo path persistence
+│   ├── Cargo.toml           # Rust dependencies
+│   └── tauri.conf.json      # App configuration
+├── src/                     # React frontend
 │   ├── App.tsx              # Main app shell
+│   ├── tauri-bridge.ts      # Tauri invoke API bridge
 │   ├── index.css            # Design system (notebook theme, micro-animations)
 │   ├── components/
 │   │   ├── AliasList.tsx    # Sortable table (A-Z / Rank modes)
@@ -176,11 +177,6 @@ gam/
 │   │   └── gitalias-library.ts    # 270+ predefined aliases from GitAlias
 │   ├── hooks/               # React hooks
 │   └── types/               # Shared TypeScript types
-├── electron/
-│   └── services/
-│       ├── git-service.ts       # Git CLI operations
-│       ├── file-service.ts      # Import/export file I/O
-│       └── ranking-service.ts   # Usage scoring & ranking
 └── tests/                   # Unit tests (Vitest)
 ```
 
@@ -189,10 +185,10 @@ gam/
 GAM delegates all Git operations to the `git config` CLI rather than manually parsing `.gitconfig` files. This approach is:
 
 - **Reliable** — Git handles all parsing edge cases (includes, conditionals)
-- **Safe** — Uses `execFile` (not `exec`) to prevent command injection
-- **Isolated** — Renderer process has no direct Node.js access (`contextIsolation: true`)
+- **Safe** — Uses `std::process::Command` in Rust to prevent command injection
+- **Lightweight** — Tauri uses the OS webview (~3-6 MB) instead of bundling Chromium (~150 MB)
 
-The suggestion service runs in the renderer process. The ranking and git services run in the main Electron process with secure IPC bridging.
+The suggestion service runs in the frontend. The ranking and git services run in the Rust backend with secure Tauri command bridging.
 
 ---
 
@@ -228,7 +224,7 @@ This project is licensed under the [MIT License](./LICENSE).
 
 ## 🙏 Acknowledgments
 
-- [Electron](https://www.electronjs.org/) — Cross-platform desktop framework
+- [Tauri](https://tauri.app/) — Lightweight cross-platform desktop framework
 - [React](https://react.dev/) — UI component library
 - [Vite](https://vite.dev/) — Lightning-fast dev server
 - [Vitest](https://vitest.dev/) — Unit testing framework

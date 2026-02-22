@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { SuggestionService } from '../src/services/suggestion-service';
+import { SuggestionService } from '#/services/suggestion-service';
 
 describe('suggestionService', () => {
     let service: SuggestionService;

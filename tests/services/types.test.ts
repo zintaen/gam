@@ -7,7 +7,7 @@ import type {
     I_GitAlias,
     I_IpcResult,
     I_ValidationResult,
-} from '../src/types/index';
+} from '#/types/index';
 
 describe('type Definitions', () => {
     it('should define I_GitAlias with correct properties', () => {

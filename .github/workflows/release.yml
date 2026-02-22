@@ -8,49 +8,65 @@ on:
 
 jobs:
   release:
-    runs-on: ${{ matrix.os }}
-    
+    permissions:
+      contents: write
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
-    
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
 
-      - name: Env & Deps
-        uses: cyberskill-world/.github/actions/env-deps@main
+      - name: Install dependencies (Ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: Build Application
-        run: pnpm run build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish Release (Linux & Mac)
-        uses: softprops/action-gh-release@v2
-        if: matrix.os != 'windows-latest'
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          files: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.dmg
-            dist/*.zip
-            release/**/*.AppImage
-            release/**/*.deb
-            release/**/*.dmg
-            release/**/*.zip
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build and publish
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish Release (Windows)
-        uses: softprops/action-gh-release@v2
-        if: matrix.os == 'windows-latest'
         with:
-          files: |
-            dist/*.exe
-            release/**/*.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tagName: ${{ github.ref_name }}
+          releaseName: 'GAM ${{ github.ref_name }}'
+          releaseBody: 'See the assets to download and install this version.'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
 
   homebrew:
     name: 🍺 Bump Homebrew Cask
@@ -62,7 +78,7 @@ jobs:
         with:
           formula-name: gam
           homebrew-tap: zintaen/homebrew-tap
-          download-url: https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM-${{ github.ref_name }}-arm64-mac.zip
+          download-url: https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ github.ref_name }}_aarch64.dmg
           commit-message: "brew: update gam to ${{ github.ref_name }}"
         env:
           COMMITTER_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}

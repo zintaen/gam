@@ -32,7 +32,7 @@ export interface I_ExportData {
     aliases: I_GitAlias[];
 }
 
-export interface I_ElectronAPI {
+export interface I_AppAPI {
     getAliases: (
         scope: 'global' | 'local' | 'all',
     ) => Promise<I_IpcResult<I_GitAlias[]>>;
@@ -62,6 +62,6 @@ export interface I_ElectronAPI {
 
 declare global {
     interface Window {
-        electronAPI: I_ElectronAPI;
+        __TAURI_INTERNALS__?: Record<string, unknown>;
     }
 }

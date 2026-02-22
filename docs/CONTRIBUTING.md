@@ -42,19 +42,19 @@ Please read and follow our [Code of Conduct](./CODE_OF_CONDUCT.md). We are commi
 
 ### Project Structure
 
-| Directory            | Purpose                         |
-| -------------------- | ------------------------------- |
-| `electron/`          | Electron main process (Node.js) |
-| `electron/services/` | Git and file I/O services       |
-| `src/`               | React renderer process          |
-| `src/components/`    | Reusable UI components          |
-| `src/hooks/`         | Custom React hooks              |
-| `tests/`             | Unit tests (Vitest)             |
+| Directory         | Purpose                    |
+| ----------------- | -------------------------- |
+| `src-tauri/`      | Tauri backend (Rust)       |
+| `src-tauri/src/`  | Rust commands and services |
+| `src/`            | React frontend             |
+| `src/components/` | Reusable UI components     |
+| `src/hooks/`      | Custom React hooks         |
+| `tests/`          | Unit tests (Vitest)        |
 
 ### Useful Commands
 
 ```bash
-pnpm dev          # Start Electron + Vite dev server
+pnpm dev          # Start Tauri + Vite dev server
 pnpm test         # Run all tests
 pnpm test -- --coverage # Run tests with coverage report
 pnpm test:watch   # Run tests in watch mode
@@ -91,11 +91,11 @@ pnpm build        # Build for production
 
 ## Coding Standards
 
-- **TypeScript** — All code must be written in TypeScript with strict mode enabled.
+- **TypeScript** — All frontend code must be written in TypeScript with strict mode enabled.
+- **Rust** — Backend commands and services are written in Rust in `src-tauri/src/`.
 - **Naming** — Use camelCase for variables/functions, PascalCase for components/classes.
 - **Components** — Each component gets its own file. Keep components focused and composable.
-- **Security** — Never use `exec()`. Always use `execFile()` for subprocess calls. Keep `contextIsolation: true` and `nodeIntegration: false`.
-- **Error handling** — All IPC handlers must catch errors and return `{ success, error }` results.
+- **Security** — All Tauri commands must catch errors and return `{ success, error }` results.
 
 ---
 

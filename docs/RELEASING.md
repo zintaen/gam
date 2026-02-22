@@ -6,21 +6,19 @@ This document describes how to build and release GAM as a desktop application.
 
 - [Node.js](https://nodejs.org/) >= 24.0.0
 - [pnpm](https://pnpm.io/) >= 10.x
+- [Rust](https://rustup.rs/) (stable toolchain)
 - [Git](https://git-scm.com/) installed and on `PATH`
 - GitHub repository push access (for tagging and CI)
 
 ## Build Scripts
 
-| Command            | Description                                      |
-| ------------------ | ------------------------------------------------ |
-| `pnpm build`       | Build for the current platform (auto-detected)   |
-| `pnpm build:mac`   | Build macOS `.dmg` installer                     |
-| `pnpm build:win`   | Build Windows `.exe` (NSIS installer + portable) |
-| `pnpm build:linux` | Build Linux `.AppImage`                          |
-| `pnpm build:all`   | Build for all three platforms (`-mwl`)           |
+| Command      | Description                                    |
+| ------------ | ---------------------------------------------- |
+| `pnpm build` | Build for the current platform (auto-detected) |
+| `pnpm dev`   | Start Tauri + Vite dev server                  |
 
 > [!NOTE]
-> Cross-platform builds have limitations. macOS `.dmg` can only be built on macOS. Windows and Linux builds can be cross-compiled in most cases, but native modules may require matching host OS.
+> Cross-platform builds are handled by CI via `tauri-apps/tauri-action`. macOS builds require macOS runners, and Linux builds require `libwebkit2gtk-4.1-dev`.
 
 ## Local Build
 
@@ -34,13 +32,13 @@ pnpm install
 pnpm build
 ```
 
-The built artifacts are output to `release/<version>/`:
+The built artifacts are output to `src-tauri/target/release/bundle/`:
 
-| Platform | Artifact                      |
-| -------- | ----------------------------- |
-| macOS    | `GAM-<version>-arm64-mac.dmg` |
-| Windows  | `GAM-<version>-Setup.exe`     |
-| Linux    | `GAM-<version>.AppImage`      |
+| Platform | Artifact               |
+| -------- | ---------------------- |
+| macOS    | `GAM.app`, `.dmg`      |
+| Windows  | `GAM.exe`, `.msi`      |
+| Linux    | `gam.AppImage`, `.deb` |
 
 ## Automated Release (CI/CD)
 
@@ -71,50 +69,37 @@ The `scripts/release.js` script does the following automatically:
 
 Pushing a `v*` tag triggers the `.github/workflows/release.yml` workflow:
 
-1. **Builds** the Electron app on all three platforms (`macos-latest`, `ubuntu-latest`, `windows-latest`)
-2. **Publishes** the artifacts as a GitHub Release (`.dmg`, `.AppImage`, `.exe`)
+1. **Builds** the Tauri app on all platforms (`macos-latest` arm64+x86_64, `ubuntu-22.04`, `windows-latest`) using `tauri-apps/tauri-action`
+2. **Publishes** the artifacts as a GitHub Release draft (`.dmg`, `.AppImage`, `.msi`, `.exe`)
 3. **Updates Homebrew** — Bumps the `gam` cask in the `zintaen/homebrew-tap` repository
 
 ### Release artifacts
 
 After CI completes, the GitHub Release page will contain:
 
-| Platform | Files                   |
-| -------- | ----------------------- |
-| macOS    | `.dmg`, `.zip`          |
-| Windows  | `.exe` (NSIS installer) |
-| Linux    | `.AppImage`             |
+| Platform | Files               |
+| -------- | ------------------- |
+| macOS    | `.dmg`              |
+| Windows  | `.msi`, `.exe`      |
+| Linux    | `.AppImage`, `.deb` |
 
 ## Manual / Pre-release Checklist
 
 Before running `pnpm release`, ensure:
 
 - [ ] All tests pass: `pnpm test`
-- [ ] TypeScript compiles cleanly: `npx tsc --noEmit`
+- [ ] Rust compiles cleanly: `cd src-tauri && cargo check`
 - [ ] Local build succeeds: `pnpm build`
 - [ ] `docs/CHANGELOG.md` is up to date with notable changes
 - [ ] No uncommitted changes: `git status` is clean
 
-## Electron Builder Configuration
+## Tauri Configuration
 
-The build configuration lives in `package.json` under the `"build"` key:
+The build configuration lives in `src-tauri/tauri.conf.json`. Key settings:
 
-```json
-{
-    "build": {
-        "appId": "com.github.zintaen.gam",
-        "productName": "GAM",
-        "asar": true,
-        "compression": "maximum",
-        "directories": {
-            "output": "release/${version}"
-        },
-        "mac": { "target": ["dmg"] },
-        "win": { "target": ["nsis", "portable"] },
-        "linux": { "target": ["AppImage"] }
-    }
-}
-```
+- **App identifier**: `com.github.zintaen.gam`
+- **Window**: 1100×750, min 800×550
+- **Bundle**: dmg, nsis, appimage targets
 
 ## Homebrew Installation (macOS)
 

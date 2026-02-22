@@ -1,0 +1,101 @@
+/* ═══════════════════════════════════════════════════════════════
+   Base & Reset — Element-level styles
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+    --bg-color: var(--color-paper);
+    --text-color: var(--color-ink);
+}
+
+:root[data-theme='dark'] {
+    --bg-color: var(--color-paper-dark);
+    --text-color: var(--color-ink-dark);
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
+}
+
+body {
+    background-image: repeating-linear-gradient(
+        transparent,
+        transparent 31px,
+        var(--color-paper-line) 31px,
+        var(--color-paper-line) 31.5px
+    );
+    background-size: 100% 32px;
+}
+
+:root[data-theme='dark'] body {
+    background-image: repeating-linear-gradient(
+        transparent,
+        transparent 31px,
+        var(--color-paper-line-dark) 31px,
+        var(--color-paper-line-dark) 31.5px
+    );
+}
+
+#root {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+::selection {
+    background: rgba(249, 229, 71, 0.4);
+    color: var(--color-ink);
+}
+
+:root[data-theme='dark'] ::selection {
+    background: rgba(249, 229, 71, 0.25);
+    color: var(--color-ink-dark);
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-eraser);
+    border-radius: 99px;
+    transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-pencil);
+}
+
+:root[data-theme='dark'] ::-webkit-scrollbar-thumb {
+    background: var(--color-eraser-dark);
+}
+
+:root[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-pencil-dark);
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+td,
+th {
+    padding: 12px 20px;
+}
+
+a {
+    text-decoration: none;
+}

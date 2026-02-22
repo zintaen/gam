@@ -1,40 +1,22 @@
 import react from '@vitejs/plugin-react';
+import path from 'node:path';
 import { defineConfig } from 'vite';
-import electron from 'vite-plugin-electron';
-import renderer from 'vite-plugin-electron-renderer';
 
 export default defineConfig({
-    plugins: [
-        react(),
-        electron([
-            {
-                entry: 'electron/main.ts',
-                vite: {
-                    build: {
-                        outDir: 'dist-electron',
-                        rollupOptions: {
-                            external: ['electron'],
-                        },
-                    },
-                },
-            },
-            {
-                entry: 'electron/preload.ts',
-                onstart(args) {
-                    args.reload();
-                },
-                vite: {
-                    build: {
-                        outDir: 'dist-electron',
-                        rollupOptions: {
-                            external: ['electron'],
-                        },
-                    },
-                },
-            },
-        ]),
-        renderer(),
-    ],
+    plugins: [react()],
+    resolve: {
+        alias: {
+            '#': path.resolve(__dirname, './src'),
+        },
+    },
+    clearScreen: false,
+    server: {
+        port: 5173,
+        strictPort: true,
+        watch: {
+            ignored: ['**/src-tauri/**'],
+        },
+    },
     build: {
         outDir: 'dist',
     },

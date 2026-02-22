@@ -9,5 +9,9 @@
     ],
     "ignoreDeps": [
         "node"
-    ]
+    ],
+    "cargo": {
+        "enabled": true,
+        "rangeStrategy": "bump"
+    }
 }

@@ -1,7 +1,6 @@
-import * as React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
-import type { I_GitAlias } from './types';
+import type { I_GitAlias } from '#/types';
 
 import { AliasForm } from './components/AliasForm';
 import { AliasList } from './components/AliasList';
@@ -10,11 +9,14 @@ import { SearchBar } from './components/SearchBar';
 import { StatusBar } from './components/StatusBar';
 import { ToastContainer } from './components/Toast';
 import { Toolbar } from './components/Toolbar';
+import { useAliasActions } from './hooks/useAliasActions';
 import { useAliases } from './hooks/useAliases';
+import { useDragDrop } from './hooks/useDragDrop';
+import { useLocalPath } from './hooks/useLocalPath';
+import { useSearch } from './hooks/useSearch';
+import { useTheme } from './hooks/useTheme';
 import { useToast } from './hooks/useToast';
-
-const isElectron
-    = typeof window !== 'undefined' && window.electronAPI !== undefined;
+import { isTauri, tauriAPI } from './lib/tauri';
 
 export default function App() {
     const {
@@ -30,135 +32,34 @@ export default function App() {
     } = useAliases();
 
     const { toasts, addToast, removeToast } = useToast();
+    const { theme, toggleTheme } = useTheme();
+    const { localPath, setLocalPath, handleSelectFolder, handleClearFolder } = useLocalPath(addToast, fetchAliases);
+    const { searchQuery, setSearchQuery, debouncedQuery, filteredAliases } = useSearch(aliases);
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const [debouncedQuery, setDebouncedQuery] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [editingAlias, setEditingAlias] = useState<I_GitAlias | null>(null);
     const [deletingAlias, setDeletingAlias] = useState<I_GitAlias | null>(null);
 
-    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-        const stored = localStorage.getItem('gam-theme');
-
-        if (stored === 'dark' || stored === 'light') {
-            return stored;
-        }
-
-        return 'light';
-    });
-
-    useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('gam-theme', theme);
-    }, [theme]);
-
-    const toggleTheme = useCallback(() => {
-        setTheme(t => (t === 'light' ? 'dark' : 'light'));
-    }, []);
-
-    const [localPath, setLocalPath] = useState('');
-
-    useEffect(() => {
-        if (isElectron) {
-            window.electronAPI.getLocalPath().then((res) => {
-                if (res.success && res.data) {
-                    setLocalPath(res.data);
-                }
-            });
-        }
-    }, []);
-
-    const handleSelectFolder = useCallback(async () => {
-        if (!isElectron) {
-            return;
-        }
-
-        try {
-            const res = await window.electronAPI.selectFolder();
-
-            if (res.success && res.data) {
-                setLocalPath(res.data);
-                fetchAliases();
-            }
-        }
-        catch (e: any) {
-            addToast('error', e.message || 'Failed to select folder');
-        }
-    }, [fetchAliases, addToast]);
-
-    const handleClearFolder = useCallback(async () => {
-        if (!isElectron) {
-            return;
-        }
-
-        try {
-            const res = await window.electronAPI.setLocalPath('');
-
-            if (res.success) {
-                setLocalPath('');
-                fetchAliases();
-                addToast('info', 'Viewing all known local repositories');
-            }
-        }
-        catch (e: any) {
-            addToast('error', e.message || 'Failed to clear folder filter');
-        }
-    }, [fetchAliases, addToast]);
-
-    useEffect(() => {
-        const handleDrop = async (e: DragEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-                const path = (e.dataTransfer.files[0] as any).path;
-
-                if (path && isElectron) {
-                    const res = await window.electronAPI.setLocalPath(path);
-
-                    if (res.success) {
-                        setLocalPath(path);
-                        fetchAliases();
-                        addToast('success', `Selected folder: ${path.split('/').pop()}`);
-                    }
-                }
-            }
-        };
-        const handleDragOver = (e: DragEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-        };
-
-        window.addEventListener('drop', handleDrop);
-        window.addEventListener('dragover', handleDragOver);
-
-        return () => {
-            window.removeEventListener('drop', handleDrop);
-            window.removeEventListener('dragover', handleDragOver);
-        };
-    }, [fetchAliases, addToast]);
-
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            setDebouncedQuery(searchQuery);
-        }, 300);
-
-        return () => clearTimeout(handler);
-    }, [searchQuery]);
+    useDragDrop(setLocalPath, fetchAliases, addToast);
 
     const existingNames = useMemo(() => aliases.map(a => a.name), [aliases]);
 
-    const filteredAliases = useMemo(() => {
-        if (!debouncedQuery) {
-            return aliases;
-        }
-
-        const q = debouncedQuery.toLowerCase();
-
-        return aliases.filter(
-            a =>
-                a.name.toLowerCase().includes(q) || a.command.toLowerCase().includes(q),
-        );
-    }, [aliases, debouncedQuery]);
+    const {
+        handleSave,
+        handleConfirmDelete,
+        handleImport,
+        handleExport,
+        handleOpenLocalFolder,
+    } = useAliasActions({
+        editingAlias,
+        deletingAlias,
+        aliases,
+        addAlias,
+        updateAlias,
+        deleteAlias,
+        addToast,
+        setDeletingAlias,
+    });
 
     const handleAdd = useCallback(() => {
         setEditingAlias(null);
@@ -174,122 +75,14 @@ export default function App() {
         setDeletingAlias(alias);
     }, []);
 
-    const handleOpenLocalFolder = useCallback(async (path: string) => {
-        if (!isElectron) {
-            addToast('info', 'Folder access is only available in the desktop app');
-
-            return;
+    const handleOpenExternal = useCallback(async (url: string) => {
+        if (isTauri) {
+            await tauriAPI.openExternal(url);
         }
-        try {
-            await window.electronAPI.openLocalFolder(path);
+        else {
+            window.open(url, '_blank');
         }
-        catch (err: any) {
-            addToast('error', err.message || 'Failed to open folder');
-        }
-    }, [addToast]);
-
-    const handleSave = useCallback(
-        async (name: string, command: string, aliasScope: 'global' | 'local', targetLocalPath?: string) => {
-            if (editingAlias) {
-                if (editingAlias.scope === 'global' && aliasScope === 'local') {
-                    await addAlias(name, command, aliasScope, targetLocalPath);
-                    addToast('success', `Created new local alias "${name}"`);
-                }
-                else {
-                    await updateAlias(editingAlias.name, name, command, aliasScope, targetLocalPath);
-                    addToast('success', `Alias "${name}" updated`);
-                }
-            }
-            else {
-                await addAlias(name, command, aliasScope, targetLocalPath);
-                addToast('success', `Alias "${name}" created`);
-            }
-        },
-        [editingAlias, addAlias, updateAlias, addToast],
-    );
-
-    const handleConfirmDelete = useCallback(async () => {
-        if (deletingAlias) {
-            try {
-                await deleteAlias(deletingAlias.name, deletingAlias.scope, deletingAlias.localPath);
-                addToast('success', `Alias "${deletingAlias.name}" deleted`);
-            }
-            catch (err: any) {
-                addToast('error', err.message || 'Failed to delete alias');
-            }
-            setDeletingAlias(null);
-        }
-    }, [deletingAlias, deleteAlias, addToast]);
-
-    const handleImport = useCallback(async () => {
-        if (!isElectron) {
-            addToast('info', 'Import is available in the desktop app');
-
-            return;
-        }
-        try {
-            const result = await window.electronAPI.importAliases();
-
-            if (result.success && result.data) {
-                let added = 0;
-
-                for (const alias of result.data) {
-                    try {
-                        await addAlias(alias.name, alias.command, alias.scope || 'global');
-                        added++;
-                    }
-                    catch {
-                        // Skip duplicates
-                    }
-                }
-                addToast('success', `Imported ${added} alias${added !== 1 ? 'es' : ''}`);
-            }
-            else if (result.error) {
-                if (!result.error.includes('cancelled')) {
-                    addToast('error', result.error);
-                }
-            }
-        }
-        catch (err: any) {
-            if (!err.message?.includes('cancelled')) {
-                addToast('error', err.message || 'Import failed');
-            }
-        }
-    }, [addAlias, addToast]);
-
-    const handleExport = useCallback(async () => {
-        if (!isElectron) {
-            const data = {
-                version: '1.0.0',
-                exportedAt: new Date().toISOString(),
-                aliases,
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `gam-${new Date().toISOString()}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            addToast('success', `Exported ${aliases.length} aliases`);
-
-            return;
-        }
-        try {
-            const result = await window.electronAPI.exportAliases(aliases);
-            if (result.success) {
-                addToast('success', `Exported ${aliases.length} aliases`);
-            }
-            else if (result.error && !result.error.includes('cancelled')) {
-                addToast('error', result.error);
-            }
-        }
-        catch (err: any) {
-            if (!err.message?.includes('cancelled')) {
-                addToast('error', err.message || 'Export failed');
-            }
-        }
-    }, [aliases, addToast]);
+    }, []);
 
     return (
         <>
@@ -362,6 +155,7 @@ export default function App() {
                     filteredCount={filteredAliases.length}
                     scope={scope}
                     isSearching={!!searchQuery}
+                    onOpenExternal={handleOpenExternal}
                 />
             </div>
 

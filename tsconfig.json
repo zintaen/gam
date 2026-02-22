@@ -9,8 +9,14 @@
         ],
         "moduleDetection": "force",
         "useDefineForClassFields": true,
+        "baseUrl": ".",
         "module": "ESNext",
         "moduleResolution": "bundler",
+        "paths": {
+            "#/*": [
+                "src/*"
+            ]
+        },
         "resolveJsonModule": true,
         "allowImportingTsExtensions": true,
         "strict": true,
@@ -24,7 +30,6 @@
         "skipLibCheck": true
     },
     "include": [
-        "src",
-        "electron"
+        "src"
     ]
 }

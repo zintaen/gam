@@ -17,22 +17,16 @@
         "git",
         "alias",
         "manager",
-        "electron",
+        "tauri",
         "desktop"
     ],
-    "main": "dist-electron/main.js",
     "engines": {
         "node": ">=24.0.0"
     },
     "scripts": {
         "ai:setup": "cyberskill ai:setup",
-        "build": "tsc && vite build && electron-builder",
-        "build:all": "tsc && vite build && electron-builder -mwl",
-        "build:linux": "tsc && vite build && electron-builder --linux",
-        "build:mac": "tsc && vite build && electron-builder --mac",
-        "build:win": "tsc && vite build && electron-builder --win",
-        "dev": "run-s ready electron:dev",
-        "electron:dev": "vite",
+        "build": "tauri build --target universal-apple-darwin",
+        "dev": "tauri dev",
         "inspect": "cyberskill inspect",
         "lint": "cyberskill lint",
         "lint:fix": "cyberskill lint:fix",
@@ -42,10 +36,13 @@
         "release": "node scripts/release.js",
         "reset": "cyberskill reset",
         "test": "vitest run",
-        "test:watch": "vitest"
+        "test:watch": "vitest",
+        "vite": "vite",
+        "vite:build": "vite build"
     },
     "dependencies": {
         "@cyberskill/shared": "2.28.0",
+        "@tauri-apps/api": "2.10.1",
         "npm-run-all2": "8.0.4",
         "react": "19.2.4",
         "react-dom": "19.2.4"
@@ -54,6 +51,7 @@
         "@commitlint/cli": "20.4.2",
         "@commitlint/config-conventional": "20.4.2",
         "@tailwindcss/postcss": "4.2.0",
+        "@tauri-apps/cli": "2.10.0",
         "@testing-library/jest-dom": "6.9.1",
         "@testing-library/react": "16.3.2",
         "@testing-library/user-event": "14.6.1",
@@ -63,8 +61,6 @@
         "@vitejs/plugin-react": "5.1.4",
         "@vitest/coverage-v8": "4.0.18",
         "autoprefixer": "10.4.24",
-        "electron": "40.6.0",
-        "electron-builder": "26.8.1",
         "eslint": "10.0.1",
         "jsdom": "28.1.0",
         "lint-staged": "16.2.7",
@@ -74,39 +70,11 @@
         "tailwindcss": "4.2.0",
         "typescript": "5.9.3",
         "vite": "7.3.1",
-        "vite-plugin-electron": "0.29.0",
-        "vite-plugin-electron-renderer": "0.14.6",
         "vitest": "4.0.18"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
-            "electron",
             "esbuild"
         ]
-    },
-    "build": {
-        "appId": "com.github.zintaen.gam",
-        "productName": "GAM",
-        "asar": true,
-        "compression": "maximum",
-        "directories": {
-            "output": "release/${version}"
-        },
-        "mac": {
-            "target": [
-                "dmg"
-            ]
-        },
-        "win": {
-            "target": [
-                "nsis",
-                "portable"
-            ]
-        },
-        "linux": {
-            "target": [
-                "AppImage"
-            ]
-        }
     }
 }

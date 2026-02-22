@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AliasList } from '../../src/components/AliasList';
+import { AliasList } from '#/components/AliasList';
 
 describe('aliasList', () => {
     const mockAliases = [

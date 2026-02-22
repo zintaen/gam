@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { I_GitAlias } from '../types';
+import type { I_GitAlias } from '#/types';
+
+import { isTauri, tauriAPI } from '#/lib/tauri';
 
 type T_Scope = 'global' | 'local' | 'all';
-
-// Detect if we're running in Electron
-const isElectron
-    = typeof window !== 'undefined' && window.electronAPI !== undefined;
 
 // Mock API for browser-based development
 const mockAliases: I_GitAlias[] = [];
@@ -53,7 +51,7 @@ const mockAPI = {
 };
 
 function getAPI() {
-    return isElectron ? window.electronAPI : mockAPI;
+    return isTauri ? tauriAPI : mockAPI;
 }
 
 export function useAliases() {

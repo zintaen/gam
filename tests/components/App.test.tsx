@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import App from '../../src/App';
+import App from '#/App';
 
-vi.mock('../../src/hooks/useAliases', () => ({
+vi.mock('#/hooks/useAliases', () => ({
     useAliases: () => ({
         aliases: [{ name: 'co', command: 'checkout', scope: 'global' }],
         loading: false,
@@ -18,7 +18,7 @@ vi.mock('../../src/hooks/useAliases', () => ({
     }),
 }));
 
-vi.mock('../../src/hooks/useToast', () => ({
+vi.mock('#/hooks/useToast', () => ({
     useToast: () => ({
         toasts: [],
         addToast: vi.fn(),

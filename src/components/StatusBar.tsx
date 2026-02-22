@@ -1,14 +1,17 @@
 import * as React from 'react';
 import { useState } from 'react';
 
+import { SUPPORT_URL } from '#/lib/constants';
+
 interface I_StatusBarProps {
     totalAliases: number;
     filteredCount: number;
     scope: string;
     isSearching: boolean;
+    onOpenExternal?: (url: string) => void;
 }
 
-export function StatusBar({ totalAliases, filteredCount, scope, isSearching }: I_StatusBarProps) {
+export function StatusBar({ totalAliases, filteredCount, scope, isSearching, onOpenExternal }: I_StatusBarProps) {
     const scopeLabel = scope === 'all' ? 'All scopes' : scope === 'global' ? 'Global' : 'Local';
     const [bananaHover, setBananaHover] = useState(false);
 
@@ -26,12 +29,11 @@ export function StatusBar({ totalAliases, filteredCount, scope, isSearching }: I
             </div>
             <button
                 onClick={() => {
-                    const url = 'https://buymeacoffee.com/zintaen';
-                    if (typeof window !== 'undefined' && window.electronAPI) {
-                        window.electronAPI.openExternal(url);
+                    if (onOpenExternal) {
+                        onOpenExternal(SUPPORT_URL);
                     }
                     else {
-                        window.open(url, '_blank');
+                        window.open(SUPPORT_URL, '_blank');
                     }
                 }}
                 onMouseEnter={() => setBananaHover(true)}

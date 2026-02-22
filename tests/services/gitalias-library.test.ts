@@ -5,7 +5,7 @@ import {
     getByCategory,
     getCategories,
     searchLibrary,
-} from '../src/services/gitalias-library';
+} from '#/services/gitalias-library';
 
 describe('gitalias-library', () => {
     describe('getAllAliases', () => {
