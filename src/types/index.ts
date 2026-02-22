@@ -64,15 +64,29 @@ export interface I_AppAPI {
 
 // ── Theme System ────────────────────────────────────────────
 
-export type T_ThemeStyle = 'glassmorphism' | 'notebook' | 'ide';
+export type T_ThemeStyle = 'glassmorphism' | 'sketch' | 'cybercore' | 'baroque' | 'shabby' | 'gothic' | 'victorian' | 'cottagecore' | 'pixel' | 'filigree';
 export type T_ThemeMode = 'light' | 'dark';
 export type T_ThemeId
     = | 'glassmorphism-dark'
         | 'glassmorphism-light'
-        | 'notebook-dark'
-        | 'notebook-light'
-        | 'ide-dark'
-        | 'ide-light';
+        | 'sketch-dark'
+        | 'sketch-light'
+        | 'cybercore-dark'
+        | 'cybercore-light'
+        | 'baroque-dark'
+        | 'baroque-light'
+        | 'shabby-dark'
+        | 'shabby-light'
+        | 'gothic-dark'
+        | 'gothic-light'
+        | 'victorian-dark'
+        | 'victorian-light'
+        | 'cottagecore-dark'
+        | 'cottagecore-light'
+        | 'pixel-dark'
+        | 'pixel-light'
+        | 'filigree-dark'
+        | 'filigree-light';
 
 export interface I_ThemeConfig {
     id: T_ThemeId;

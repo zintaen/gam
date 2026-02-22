@@ -1,13 +1,9 @@
 import * as React from 'react';
-import { useEffect, useRef, useState } from 'react';
 
 interface I_ToolbarProps {
     scope: 'global' | 'local' | 'all';
     onScopeChange: (scope: 'global' | 'local' | 'all') => void;
     onAdd: () => void;
-    onImport: () => void;
-    onExport: () => void;
-    aliasCount: number;
     localPath?: string;
     onSelectFolder?: () => void;
     onClearFolder?: () => void;
@@ -17,27 +13,10 @@ export function Toolbar({
     scope,
     onScopeChange,
     onAdd,
-    onImport,
-    onExport,
-    aliasCount,
     localPath,
     onSelectFolder,
     onClearFolder,
 }: I_ToolbarProps) {
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        function handleClickOutside(event: MouseEvent) {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsDropdownOpen(false);
-            }
-        }
-        document.addEventListener('mousedown', handleClickOutside);
-
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
     const scopes = ['all', 'global', 'local'] as const;
 
     return (
@@ -55,7 +34,7 @@ export function Toolbar({
                         return (
                             <button
                                 key={s}
-                                className={`px-4 py-1.5 text-sm font-bold whitespace-nowrap transition-all duration-200 rounded-md cursor-pointer border ${isActive
+                                className={`px-4 py-1.5 text-sm font-bold whitespace-nowrap transition-all duration-200 rounded-md cursor-pointer border theme-scope-tab ${isActive
                                     ? 'border-[var(--color-border)]'
                                     : 'bg-transparent border-transparent hover:bg-[var(--color-surface-hover)]'
                                 }`}
@@ -98,50 +77,6 @@ export function Toolbar({
                     <span className="text-lg inline-block transition-transform duration-300 group-hover:rotate-[-15deg] group-hover:scale-110">＋</span>
                     New Alias
                 </button>
-            </div>
-
-            <div className="relative inline-block" ref={dropdownRef}>
-                <button
-                    className="px-4 py-2 text-sm font-bold bg-transparent border rounded-md transition-all cursor-pointer btn-press"
-                    style={{ color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }}
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    title="Manage Data"
-                    aria-haspopup="true"
-                    aria-expanded={isDropdownOpen}
-                >
-                    📋 Data ▾
-                </button>
-                {isDropdownOpen && (
-                    <div
-                        className="absolute right-0 top-full mt-2 min-w-[160px] glass border rounded-lg z-50 p-1 flex flex-col gap-0.5 overflow-hidden animate-bounce-in"
-                        style={{ backgroundColor: 'var(--color-surface-raised)', borderColor: 'var(--color-border)', backdropFilter: 'var(--theme-card-backdrop)' }}
-                        role="menu"
-                    >
-                        <button
-                            className="w-full text-left px-4 py-2 bg-transparent border-none text-sm font-bold cursor-pointer rounded-md transition-colors focus:outline-none hover:bg-[var(--color-success-muted)]"
-                            style={{ color: 'var(--color-text-secondary)' }}
-                            role="menuitem"
-                            onClick={() => {
-                                onImport();
-                                setIsDropdownOpen(false);
-                            }}
-                        >
-                            ↓ Import
-                        </button>
-                        <button
-                            className="w-full text-left px-4 py-2 bg-transparent border-none text-sm font-bold cursor-pointer rounded-md transition-colors focus:outline-none hover:bg-[var(--color-info-muted)] disabled:opacity-30 disabled:cursor-not-allowed"
-                            style={{ color: 'var(--color-text-secondary)' }}
-                            role="menuitem"
-                            onClick={() => {
-                                onExport();
-                                setIsDropdownOpen(false);
-                            }}
-                            disabled={aliasCount === 0}
-                        >
-                            ↑ Export
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     );

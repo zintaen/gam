@@ -192,7 +192,7 @@ export function AliasList({
 
     return (
         <div
-            className="flex-1 border overflow-hidden flex flex-col page-fold theme-card"
+            className="flex-1 border overflow-hidden flex flex-col page-fold theme-card theme-table"
             style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
             <table className="w-full text-left table-fixed">

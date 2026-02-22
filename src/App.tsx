@@ -6,9 +6,9 @@ import { AliasForm } from './components/AliasForm';
 import { AliasList } from './components/AliasList';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { SearchBar } from './components/SearchBar';
+import { SettingsDropdown } from './components/SettingsDropdown';
 import { StatusBar } from './components/StatusBar';
 import { ThemeSettingsModal } from './components/ThemeSettingsModal';
-import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { ToastContainer } from './components/Toast';
 import { Toolbar } from './components/Toolbar';
 import { useAliasActions } from './hooks/useAliasActions';
@@ -104,7 +104,7 @@ export default function App() {
 
                     <span className="text-sm font-bold tracking-[2px] uppercase flex items-center gap-1.5" style={{ color: 'var(--color-text)' }}>
                         <span className="px-1" style={{ color: 'var(--color-text)' }}>
-                            {themeConfig.style === 'notebook' ? '✎' : themeConfig.style === 'glassmorphism' ? '◈' : '⌨'}
+                            {{ glassmorphism: '◈', sketch: '✎', cybercore: '⌬', baroque: '♛', shabby: '❀', gothic: '⛧', victorian: '⚜', cottagecore: '🌿', pixel: '▦', filigree: '❋' }[themeConfig.style] || '◈'}
                             {' '}
                             GAM
                         </span>
@@ -116,12 +116,16 @@ export default function App() {
                         </span>
                     </span>
 
-                    <ThemeSwitcher
+                    <SettingsDropdown
                         themeId={themeId}
-                        onSelect={setThemeId}
-                        onPreview={previewTheme}
+                        onSelectTheme={setThemeId}
+                        onPreviewTheme={previewTheme}
                         onCancelPreview={cancelPreview}
-                        onOpenSettings={() => setShowThemeSettings(true)}
+                        onOpenThemeSettings={() => setShowThemeSettings(true)}
+                        onImport={handleImport}
+                        onExport={handleExport}
+                        aliasCount={aliases.length}
+                        onOpenExternal={handleOpenExternal}
                     />
                 </div>
                 {/* Animated gradient accent strip */}
@@ -137,9 +141,6 @@ export default function App() {
                     scope={scope}
                     onScopeChange={setScope as any}
                     onAdd={handleAdd}
-                    onImport={handleImport}
-                    onExport={handleExport}
-                    aliasCount={aliases.length}
                     localPath={localPath}
                     onSelectFolder={handleSelectFolder}
                     onClearFolder={handleClearFolder}

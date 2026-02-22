@@ -2,7 +2,7 @@
    GAM — Git Alias Manager | Multi-Theme Design System
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500;600;700&family=Cormorant:wght@300;400;500;600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Press+Start+2P&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 /* Core system */
 @import './styles/theme.css';
@@ -10,12 +10,20 @@
 
 /* Theme variants */
 @import './styles/themes/glassmorphism.css';
-@import './styles/themes/notebook.css';
-@import './styles/themes/ide.css';
+@import './styles/themes/sketch.css';
+@import './styles/themes/cybercore.css';
+@import './styles/themes/baroque.css';
+@import './styles/themes/shabby.css';
+@import './styles/themes/gothic.css';
+@import './styles/themes/victorian.css';
+@import './styles/themes/cottagecore.css';
+@import './styles/themes/pixel.css';
+@import './styles/themes/filigree.css';
 
 /* Base & utilities */
 @import './styles/base.css';
 @import './styles/utilities.css';
+@import './styles/theme-components.css';
 
 @import 'tailwindcss';
 

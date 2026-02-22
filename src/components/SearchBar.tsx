@@ -36,7 +36,7 @@ export const SearchBar = React.memo(({
                 placeholder="Search aliases... (⌘F)"
                 value={value}
                 onChange={e => onChange(e.target.value)}
-                className="w-full border py-3.5 pl-11 pr-14 text-[15px] transition-all duration-300 focus-glow focus:outline-none theme-card"
+                className="w-full border py-3.5 pl-11 pr-14 text-[15px] transition-all duration-300 focus-glow focus:outline-none theme-card theme-input"
                 style={{
                     backgroundColor: 'var(--color-surface)',
                     borderColor: 'var(--color-border)',

@@ -261,7 +261,7 @@ export function AliasForm({
                                 <label className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }} htmlFor="aliasCommand">Command</label>
                                 <textarea
                                     id="aliasCommand"
-                                    className="w-full border-2 rounded py-2 px-3 text-[15px] transition-all duration-200 focus-glow focus:outline-none resize-y font-mono min-h-[40px]"
+                                    className="w-full border-2 rounded py-2 px-3 text-[15px] transition-all duration-200 focus-glow focus:outline-none resize-y font-mono min-h-[40px] theme-input"
                                     style={{
                                         backgroundColor: 'var(--color-surface)',
                                         borderColor: commandError ? 'var(--color-danger)' : 'var(--color-border)',
@@ -291,7 +291,7 @@ export function AliasForm({
                                     <input
                                         id="aliasName"
                                         type="text"
-                                        className="w-full border-2 rounded py-2 pl-10 pr-3 text-[15px] transition-all duration-200 focus-glow focus:outline-none"
+                                        className="w-full border-2 rounded py-2 pl-10 pr-3 text-[15px] transition-all duration-200 focus-glow focus:outline-none theme-input"
                                         style={{
                                             backgroundColor: 'var(--color-surface)',
                                             borderColor: nameError ? 'var(--color-danger)' : 'var(--color-border)',

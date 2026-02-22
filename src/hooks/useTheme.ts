@@ -11,15 +11,6 @@ function parseThemeId(raw: string | null | undefined): T_ThemeId {
         return raw as T_ThemeId;
     }
 
-    // Migration: old format "light" / "dark" → notebook equivalent
-    if (raw === 'light') {
-        return 'notebook-light';
-    }
-
-    if (raw === 'dark') {
-        return 'notebook-dark';
-    }
-
     return DEFAULT_THEME_ID;
 }
 

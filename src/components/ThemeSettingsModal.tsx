@@ -14,17 +14,38 @@ interface I_ThemeSettingsModalProps {
 
 const STYLE_ICONS: Record<string, string> = {
     glassmorphism: '◈',
-    notebook: '✎',
-    ide: '⌨',
+    sketch: '✎',
+    cybercore: '⌬',
+    baroque: '♛',
+    shabby: '❀',
+    gothic: '⛧',
+    victorian: '⚜',
+    cottagecore: '🌿',
+    pixel: '▦',
+    filigree: '❋',
 };
 
 const SWATCHES: Record<string, { bg: string; surface: string; primary: string; text: string }> = {
-    'glassmorphism-dark': { bg: '#0a0e27', surface: 'rgba(255,255,255,0.08)', primary: '#06b6d4', text: '#e2e8f0' },
-    'glassmorphism-light': { bg: '#e8ecf4', surface: 'rgba(255,255,255,0.7)', primary: '#0891b2', text: '#0f172a' },
-    'notebook-dark': { bg: '#1e1c18', surface: '#2a2621', primary: '#44cc77', text: '#f0e8d8' },
-    'notebook-light': { bg: '#faf6ee', surface: '#ece1cc', primary: '#228844', text: '#2c1810' },
-    'ide-dark': { bg: '#0f172a', surface: '#1e293b', primary: '#3b82f6', text: '#f1f5f9' },
-    'ide-light': { bg: '#fafafa', surface: '#ffffff', primary: '#3b82f6', text: '#1e293b' },
+    'glassmorphism-dark': { bg: '#06091a', surface: '#111830', primary: '#22d3ee', text: '#e2e8f0' },
+    'glassmorphism-light': { bg: '#dde4f0', surface: '#eef2fc', primary: '#0891b2', text: '#0f172a' },
+    'sketch-dark': { bg: '#181610', surface: '#222018', primary: '#55cc88', text: '#efe0c8' },
+    'sketch-light': { bg: '#f5f0e2', surface: '#efe8d6', primary: '#1a6638', text: '#1a1008' },
+    'cybercore-dark': { bg: '#050505', surface: '#0c0c0c', primary: '#00ff88', text: '#00ff88' },
+    'cybercore-light': { bg: '#eaf5ee', surface: '#ddeee2', primary: '#007744', text: '#061a0e' },
+    'baroque-dark': { bg: '#080400', surface: '#150e04', primary: '#dab040', text: '#f0d8a0' },
+    'baroque-light': { bg: '#f8f2e4', surface: '#f0e6cc', primary: '#906820', text: '#221004' },
+    'shabby-dark': { bg: '#161012', surface: '#20181c', primary: '#e09090', text: '#f2dce2' },
+    'shabby-light': { bg: '#fdf8f4', surface: '#fff9f5', primary: '#c87878', text: '#4a2e2e' },
+    'gothic-dark': { bg: '#060608', surface: '#100e12', primary: '#cc2828', text: '#ccc8c0' },
+    'gothic-light': { bg: '#eee8e4', surface: '#e4dcd4', primary: '#7a0e0e', text: '#141418' },
+    'victorian-dark': { bg: '#0c0806', surface: '#181210', primary: '#8b1818', text: '#e8d8c0' },
+    'victorian-light': { bg: '#f6eee0', surface: '#eee2cc', primary: '#6a1010', text: '#181004' },
+    'cottagecore-dark': { bg: '#14100c', surface: '#1e1814', primary: '#6aa050', text: '#e8d8c0' },
+    'cottagecore-light': { bg: '#f6f0e4', surface: '#efe6d4', primary: '#4a7a30', text: '#302418' },
+    'pixel-dark': { bg: '#18182a', surface: '#202040', primary: '#00cc66', text: '#e0e0ff' },
+    'pixel-light': { bg: '#e0e0ee', surface: '#eaeaf6', primary: '#008844', text: '#181830' },
+    'filigree-dark': { bg: '#08080e', surface: '#121218', primary: '#b8a070', text: '#c8c4b8' },
+    'filigree-light': { bg: '#f8f6f0', surface: '#f0ece2', primary: '#7a6838', text: '#222018' },
 };
 
 export function ThemeSettingsModal({
@@ -58,11 +79,10 @@ export function ThemeSettingsModal({
             aria-labelledby="theme-settings-title"
         >
             <div
-                className="w-[92%] max-w-[640px] max-h-[85vh] flex flex-col overflow-hidden animate-bounce-in rounded-2xl border"
+                className="w-[92%] max-w-[720px] max-h-[85vh] flex flex-col overflow-hidden animate-bounce-in rounded-2xl border"
                 style={{
                     backgroundColor: 'var(--color-surface-raised)',
                     borderColor: 'var(--color-border)',
-                    backdropFilter: 'var(--theme-card-backdrop)',
                 }}
                 onMouseLeave={onCancelPreview}
             >
@@ -83,7 +103,7 @@ export function ThemeSettingsModal({
 
                 {/* Grid */}
                 <div className="p-6 overflow-y-auto">
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                         {themes.map((t: I_ThemeConfig) => {
                             const swatch = SWATCHES[t.id];
                             const isActive = t.id === currentThemeId;
@@ -101,25 +121,25 @@ export function ThemeSettingsModal({
                                 >
                                     {/* Swatch preview */}
                                     <div
-                                        className="h-[72px] relative overflow-hidden"
+                                        className="h-[56px] relative overflow-hidden"
                                         style={{ backgroundColor: swatch.bg }}
                                     >
                                         {/* Mini card mockup */}
                                         <div
-                                            className="absolute top-3 left-3 right-3 bottom-3 rounded-md flex items-center gap-2 px-2"
+                                            className="absolute top-2 left-2 right-2 bottom-2 rounded-sm flex items-center gap-1.5 px-1.5"
                                             style={{ backgroundColor: swatch.surface, border: `1px solid rgba(128,128,128,0.15)` }}
                                         >
-                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: swatch.primary }} />
-                                            <div className="flex-1 flex flex-col gap-1">
-                                                <div className="h-1.5 rounded-full w-3/4" style={{ backgroundColor: swatch.text, opacity: 0.6 }} />
-                                                <div className="h-1 rounded-full w-1/2" style={{ backgroundColor: swatch.text, opacity: 0.3 }} />
+                                            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: swatch.primary }} />
+                                            <div className="flex-1 flex flex-col gap-0.5">
+                                                <div className="h-1 rounded-full w-3/4" style={{ backgroundColor: swatch.text, opacity: 0.6 }} />
+                                                <div className="h-0.5 rounded-full w-1/2" style={{ backgroundColor: swatch.text, opacity: 0.3 }} />
                                             </div>
                                         </div>
 
                                         {/* Active checkmark */}
                                         {isActive && (
                                             <div
-                                                className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                                                className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
                                                 style={{ backgroundColor: swatch.primary }}
                                             >
                                                 ✓
@@ -128,13 +148,10 @@ export function ThemeSettingsModal({
                                     </div>
 
                                     {/* Label */}
-                                    <div className="px-3 py-2.5">
-                                        <div className="text-[13px] font-bold flex items-center gap-1.5" style={{ color: 'var(--color-text)' }}>
-                                            <span className="text-xs">{STYLE_ICONS[t.style]}</span>
+                                    <div className="px-2 py-1.5">
+                                        <div className="text-[11px] font-bold flex items-center gap-1" style={{ color: 'var(--color-text)' }}>
+                                            <span className="text-[10px]">{STYLE_ICONS[t.style]}</span>
                                             {t.label}
-                                        </div>
-                                        <div className="text-[11px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>
-                                            {t.description}
                                         </div>
                                     </div>
                                 </button>
