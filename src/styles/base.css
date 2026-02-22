@@ -1,46 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════
-   Base & Reset — Element-level styles
+   Base & Reset — Element-level styles (theme-agnostic)
    ═══════════════════════════════════════════════════════════════ */
-
-:root {
-    --bg-color: var(--color-paper);
-    --text-color: var(--color-ink);
-}
-
-:root[data-theme='dark'] {
-    --bg-color: var(--color-paper-dark);
-    --text-color: var(--color-ink-dark);
-}
 
 html,
 body {
     height: 100%;
     margin: 0;
     padding: 0;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: var(--color-bg);
+    color: var(--color-text);
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     font-size: 16px;
-}
-
-body {
-    background-image: repeating-linear-gradient(
-        transparent,
-        transparent 31px,
-        var(--color-paper-line) 31px,
-        var(--color-paper-line) 31.5px
-    );
-    background-size: 100% 32px;
-}
-
-:root[data-theme='dark'] body {
-    background-image: repeating-linear-gradient(
-        transparent,
-        transparent 31px,
-        var(--color-paper-line-dark) 31px,
-        var(--color-paper-line-dark) 31.5px
-    );
 }
 
 #root {
@@ -50,13 +21,8 @@ body {
 }
 
 ::selection {
-    background: rgba(249, 229, 71, 0.4);
-    color: var(--color-ink);
-}
-
-:root[data-theme='dark'] ::selection {
-    background: rgba(249, 229, 71, 0.25);
-    color: var(--color-ink-dark);
+    background: var(--color-selection-bg);
+    color: var(--color-selection-text);
 }
 
 ::-webkit-scrollbar {
@@ -69,21 +35,13 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--color-eraser);
+    background: var(--color-scrollbar);
     border-radius: 99px;
     transition: background 0.2s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-pencil);
-}
-
-:root[data-theme='dark'] ::-webkit-scrollbar-thumb {
-    background: var(--color-eraser-dark);
-}
-
-:root[data-theme='dark'] ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-pencil-dark);
+    background: var(--color-scrollbar-hover);
 }
 
 table {
@@ -98,4 +56,20 @@ th {
 
 a {
     text-decoration: none;
+}
+
+/* ── Theme transition ─── */
+body,
+body * {
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+/* Opt out for elements that animate their own transitions */
+.no-theme-transition,
+.no-theme-transition * {
+    transition: none !important;
 }

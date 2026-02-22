@@ -17,6 +17,7 @@ describe('statusBar', () => {
         filteredCount: 5,
         scope: 'global',
         isSearching: false,
+        onOpenExternal: vi.fn(),
     };
 
     it('renders scope label for global', () => {
@@ -51,7 +52,7 @@ describe('statusBar', () => {
 
     it('renders Buy Me A Banana button', () => {
         render(<StatusBar {...defaultProps} />);
-        expect(screen.getByText('Buy Me A Banana')).toBeInTheDocument();
+        expect(screen.getByText(/Buy Me A Banana/)).toBeInTheDocument();
     });
 
     it('banana button has support title', () => {

@@ -1,55 +1,35 @@
 import * as React from 'react';
-import { useState } from 'react';
-
-import { SUPPORT_URL } from '#/lib/constants';
 
 interface I_StatusBarProps {
     totalAliases: number;
     filteredCount: number;
     scope: string;
     isSearching: boolean;
-    onOpenExternal?: (url: string) => void;
+    onOpenExternal: (url: string) => void;
 }
 
-export function StatusBar({ totalAliases, filteredCount, scope, isSearching, onOpenExternal }: I_StatusBarProps) {
+export const StatusBar = React.memo(({ totalAliases, filteredCount, scope, isSearching, onOpenExternal }: I_StatusBarProps) => {
     const scopeLabel = scope === 'all' ? 'All scopes' : scope === 'global' ? 'Global' : 'Local';
-    const [bananaHover, setBananaHover] = useState(false);
+    const countLabel = isSearching
+        ? `${filteredCount} of ${totalAliases}`
+        : `${totalAliases} ${totalAliases === 1 ? 'alias' : 'aliases'}`;
 
     return (
-        <div className="flex justify-between items-center px-0.5 text-[11px] text-pencil dark:text-pencil-dark uppercase tracking-[1px] font-bold">
-            <div className="flex items-center gap-2 whitespace-nowrap">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-pen dark:bg-green-pen-dark animate-pulse-glow text-green-pen dark:text-green-pen-dark" />
+        <div className="flex justify-between items-center px-0.5 text-[11px] uppercase tracking-[1px] font-bold" style={{ color: 'var(--color-text-muted)' }}>
+            <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full animate-pulse-glow" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-success)' }} />
                 <span>{scopeLabel}</span>
-                <span className="text-ink-faint dark:text-ink-faint-dark">·</span>
-                <span>
-                    {isSearching
-                        ? `${filteredCount} of ${totalAliases}`
-                        : `${totalAliases} alias${totalAliases !== 1 ? 'es' : ''}`}
-                </span>
+                <span style={{ color: 'var(--color-text-muted)' }}>·</span>
+                <span>{countLabel}</span>
             </div>
             <button
-                onClick={() => {
-                    if (onOpenExternal) {
-                        onOpenExternal(SUPPORT_URL);
-                    }
-                    else {
-                        window.open(SUPPORT_URL, '_blank');
-                    }
-                }}
-                onMouseEnter={() => setBananaHover(true)}
-                onMouseLeave={() => setBananaHover(false)}
-                className="text-ink-faint dark:text-ink-faint-dark hover:text-ink dark:hover:text-ink-dark transition-colors text-[11px] font-bold flex items-center gap-1 bg-transparent border-none cursor-pointer p-0"
+                className="transition-colors text-[11px] font-bold flex items-center gap-1 bg-transparent border-none cursor-pointer p-0"
+                style={{ color: 'var(--color-text-muted)' }}
+                onClick={() => onOpenExternal('https://buymeacoffee.com/zintaen')}
                 title="Support GAM development"
             >
-                <span
-                    className="inline-block"
-                    style={bananaHover ? { animation: 'bananaWiggle 0.5s ease-in-out' } : undefined}
-                >
-                    🍌
-                </span>
-                {' '}
-                Buy Me A Banana
+                🍌 Buy Me A Banana
             </button>
         </div>
     );
-}
+});

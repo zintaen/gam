@@ -227,3 +227,21 @@ pub fn open_external(url: String) -> IpcResult<bool> {
         Err(e) => IpcResult::err(format!("Failed to open URL: {}", e)),
     }
 }
+
+// ── Theme settings ─────────────────────────────────────────
+
+#[tauri::command]
+pub fn get_theme(state: State<'_, AppState>) -> IpcResult<String> {
+    let settings = state.settings_service.read().unwrap();
+    let theme = settings
+        .get("theme")
+        .unwrap_or_else(|| "glassmorphism-dark".to_string());
+    IpcResult::ok(theme)
+}
+
+#[tauri::command]
+pub fn set_theme(state: State<'_, AppState>, theme_id: String) -> IpcResult<bool> {
+    let mut settings = state.settings_service.write().unwrap();
+    settings.set("theme", &theme_id);
+    IpcResult::ok(true)
+}

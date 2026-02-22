@@ -25,7 +25,7 @@ describe('aliasList', () => {
                 {...mockHandlers}
             />,
         );
-        expect(screen.getByText(/This notebook is empty/i)).toBeInTheDocument();
+        expect(screen.getByText(/No aliases yet/i)).toBeInTheDocument();
     });
 
     it('renders loading state', () => {

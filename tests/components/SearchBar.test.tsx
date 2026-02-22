@@ -62,7 +62,7 @@ describe('searchBar', () => {
     it('focuses on Cmd+F keyboard shortcut', () => {
         render(<SearchBar {...defaultProps} />);
         const input = screen.getByPlaceholderText(/Search aliases/i);
-        fireEvent.keyDown(window, { key: 'f', metaKey: true });
+        fireEvent.keyDown(document, { key: 'f', metaKey: true });
         expect(document.activeElement).toBe(input);
     });
 });

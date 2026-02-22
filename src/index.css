@@ -1,13 +1,22 @@
 /* ═══════════════════════════════════════════════════════════════
-   GAM — Git Alias Manager | Handwriting Notebook Style
+   GAM — Git Alias Manager | Multi-Theme Design System
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=JetBrains+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* Core system */
 @import './styles/theme.css';
 @import './styles/animations.css';
+
+/* Theme variants */
+@import './styles/themes/glassmorphism.css';
+@import './styles/themes/notebook.css';
+@import './styles/themes/ide.css';
+
+/* Base & utilities */
 @import './styles/base.css';
 @import './styles/utilities.css';
 
 @import 'tailwindcss';
 
-@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));

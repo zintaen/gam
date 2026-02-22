@@ -8,13 +8,15 @@ interface I_SuggestionChipsProps {
 }
 
 export function SuggestionChips({ suggestions, onSelect }: I_SuggestionChipsProps) {
-    if (suggestions.length === 0) {
+    if (suggestions.length === 0)
         return null;
-    }
 
     return (
-        <div className="flex flex-col gap-1.5 p-2.5 bg-highlight-green/8 dark:bg-highlight-green/5 border border-dashed border-green-pen/20 dark:border-green-pen-dark/20 rounded animate-fade-in">
-            <div className="text-green-pen dark:text-green-pen-dark text-xs font-bold flex items-center gap-1">
+        <div
+            className="flex flex-col gap-1.5 p-2.5 border border-dashed rounded animate-fade-in"
+            style={{ backgroundColor: 'var(--color-success-muted)', borderColor: 'var(--color-success)' }}
+        >
+            <div className="text-xs font-bold flex items-center gap-1" style={{ color: 'var(--color-success)' }}>
                 <span className="inline-block animate-float text-sm">💡</span>
                 Suggested names:
             </div>
@@ -23,8 +25,13 @@ export function SuggestionChips({ suggestions, onSelect }: I_SuggestionChipsProp
                     <button
                         key={`${s.alias}-${i}`}
                         type="button"
-                        className="bg-blue-pen/8 dark:bg-blue-pen-dark/10 border border-blue-pen/15 dark:border-blue-pen-dark/15 text-blue-pen dark:text-blue-pen-dark px-2 py-0.5 rounded cursor-pointer transition-all duration-200 hover:bg-blue-pen/15 dark:hover:bg-blue-pen-dark/15 hover:-translate-y-0.5 hover:scale-105 font-bold btn-press"
-                        style={{ animation: `chipPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.06}s both` }}
+                        className="border px-2 py-0.5 rounded cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 font-bold btn-press"
+                        style={{
+                            backgroundColor: 'var(--color-badge-global-bg)',
+                            borderColor: 'var(--color-badge-global-border)',
+                            color: 'var(--color-badge-global-text)',
+                            animation: `chipPopIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.06}s both`,
+                        }}
                         onClick={() => onSelect(s.alias)}
                         title={`${s.reason} (${s.scheme})`}
                     >

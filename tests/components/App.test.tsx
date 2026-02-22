@@ -26,6 +26,17 @@ vi.mock('#/hooks/useToast', () => ({
     }),
 }));
 
+vi.mock('#/hooks/useTheme', () => ({
+    useTheme: () => ({
+        themeId: 'glassmorphism-dark',
+        themeConfig: { id: 'glassmorphism-dark', style: 'glassmorphism', mode: 'dark', label: 'Glassmorphism Dark', description: '' },
+        setThemeId: vi.fn(),
+        previewTheme: vi.fn(),
+        cancelPreview: vi.fn(),
+        isPreview: false,
+    }),
+}));
+
 describe('app', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -33,7 +44,7 @@ describe('app', () => {
 
     it('renders title and basic layout', () => {
         render(<App />);
-        expect(screen.getByText('✎ GAM')).toBeInTheDocument();
+        expect(screen.getByText(/GAM/)).toBeInTheDocument();
     });
 
     it('renders the mocked aliases', () => {

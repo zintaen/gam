@@ -38,4 +38,9 @@ export const tauriAPI: I_AppAPI = {
 
     openExternal: url =>
         invoke<I_IpcResult>('open_external', { url }),
+
+    getTheme: () => invoke<I_IpcResult<string>>('get_theme'),
+
+    setTheme: themeId =>
+        invoke<I_IpcResult>('set_theme', { themeId }),
 };

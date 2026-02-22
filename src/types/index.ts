@@ -58,6 +58,28 @@ export interface I_AppAPI {
     setLocalPath: (path: string) => Promise<I_IpcResult<string>>;
     openLocalFolder: (path: string) => Promise<I_IpcResult>;
     openExternal: (url: string) => Promise<I_IpcResult>;
+    getTheme: () => Promise<I_IpcResult<string>>;
+    setTheme: (themeId: string) => Promise<I_IpcResult>;
+}
+
+// ── Theme System ────────────────────────────────────────────
+
+export type T_ThemeStyle = 'glassmorphism' | 'notebook' | 'ide';
+export type T_ThemeMode = 'light' | 'dark';
+export type T_ThemeId
+    = | 'glassmorphism-dark'
+        | 'glassmorphism-light'
+        | 'notebook-dark'
+        | 'notebook-light'
+        | 'ide-dark'
+        | 'ide-light';
+
+export interface I_ThemeConfig {
+    id: T_ThemeId;
+    style: T_ThemeStyle;
+    mode: T_ThemeMode;
+    label: string;
+    description: string;
 }
 
 declare global {

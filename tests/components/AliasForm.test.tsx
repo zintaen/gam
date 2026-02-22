@@ -16,7 +16,7 @@ describe('aliasForm', () => {
     it('shows validation errors for empty fields', async () => {
         render(<AliasForm onSave={mockOnSave} onClose={mockOnClose} currentScope="global" />);
 
-        fireEvent.click(screen.getByRole('button', { name: /Write Alias/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Create Alias/i }));
 
         expect(screen.getByText(/Alias name is required/i)).toBeInTheDocument();
         expect(screen.getByText(/Command is required/i)).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe('aliasForm', () => {
         await user.type(commandInput, 'checkout');
         await user.type(nameInput, 'co');
 
-        const submitBtn = screen.getByRole('button', { name: /Write Alias/i });
+        const submitBtn = screen.getByRole('button', { name: /Create Alias/i });
         await user.click(submitBtn);
 
         await waitFor(() => {

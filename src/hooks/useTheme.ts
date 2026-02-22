@@ -1,26 +1,111 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { THEME_STORAGE_KEY } from '#/lib/constants';
+import type { I_ThemeConfig, T_ThemeId } from '#/types';
+
+import { DEFAULT_THEME_ID, THEME_REGISTRY, THEME_STORAGE_KEY } from '#/lib/constants';
+import { isTauri, tauriAPI } from '#/lib/tauri';
+
+/** Parse a ThemeId string into style + mode, with fallback to default. */
+function parseThemeId(raw: string | null | undefined): T_ThemeId {
+    if (raw && raw in THEME_REGISTRY) {
+        return raw as T_ThemeId;
+    }
+
+    // Migration: old format "light" / "dark" → notebook equivalent
+    if (raw === 'light') {
+        return 'notebook-light';
+    }
+
+    if (raw === 'dark') {
+        return 'notebook-dark';
+    }
+
+    return DEFAULT_THEME_ID;
+}
+
+/** Apply data-style and data-mode attributes to :root */
+function applyTheme(themeId: T_ThemeId) {
+    const config = THEME_REGISTRY[themeId];
+
+    if (!config) {
+        return;
+    }
+    document.documentElement.setAttribute('data-style', config.style);
+    document.documentElement.setAttribute('data-mode', config.mode);
+    document.documentElement.style.fontFamily = `var(--theme-font-sans)`;
+}
 
 export function useTheme() {
-    const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const [themeId, setThemeIdState] = useState<T_ThemeId>(() => {
         const stored = localStorage.getItem(THEME_STORAGE_KEY);
 
-        if (stored === 'dark' || stored === 'light') {
-            return stored;
-        }
-
-        return 'light';
+        return parseThemeId(stored);
     });
 
-    useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem(THEME_STORAGE_KEY, theme);
-    }, [theme]);
+    const [isPreview, setIsPreview] = useState(false);
+    const committedRef = useRef<T_ThemeId>(themeId);
 
-    const toggleTheme = useCallback(() => {
-        setTheme(t => (t === 'light' ? 'dark' : 'light'));
+    // Load theme from Tauri backend on mount
+    useEffect(() => {
+        if (!isTauri) {
+            return;
+        }
+
+        tauriAPI.getTheme().then((result) => {
+            if (result.success && result.data) {
+                const parsed = parseThemeId(result.data);
+                committedRef.current = parsed;
+                setThemeIdState(parsed);
+            }
+        }).catch(() => {
+            // Fallback to localStorage value (already set in useState initializer)
+        });
     }, []);
 
-    return { theme, toggleTheme };
+    // Apply theme whenever themeId changes
+    useEffect(() => {
+        applyTheme(themeId);
+
+        // Only persist when it's not a preview
+        if (!isPreview) {
+            localStorage.setItem(THEME_STORAGE_KEY, themeId);
+        }
+    }, [themeId, isPreview]);
+
+    /** Set theme permanently (persists to backend + localStorage) */
+    const setThemeId = useCallback((id: T_ThemeId) => {
+        committedRef.current = id;
+        setThemeIdState(id);
+        setIsPreview(false);
+        localStorage.setItem(THEME_STORAGE_KEY, id);
+
+        if (isTauri) {
+            tauriAPI.setTheme(id).catch(() => {
+                // Silent fail — localStorage is the fallback
+            });
+        }
+    }, []);
+
+    /** Temporarily preview a theme without persisting */
+    const previewTheme = useCallback((id: T_ThemeId) => {
+        setThemeIdState(id);
+        setIsPreview(true);
+    }, []);
+
+    /** Cancel preview and revert to committed theme */
+    const cancelPreview = useCallback(() => {
+        setThemeIdState(committedRef.current);
+        setIsPreview(false);
+    }, []);
+
+    const themeConfig: I_ThemeConfig = THEME_REGISTRY[themeId] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
+
+    return {
+        themeId,
+        themeConfig,
+        setThemeId,
+        previewTheme,
+        cancelPreview,
+        isPreview,
+    };
 }

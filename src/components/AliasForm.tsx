@@ -71,9 +71,9 @@ export function AliasForm({
 
             return false;
         }
+
         if (!/^[a-z][\w-]*$/i.test(value)) {
             setNameError('Must start with a letter; only letters, numbers, hyphens, and underscores');
-
             return false;
         }
         setNameError('');
@@ -91,10 +91,10 @@ export function AliasForm({
         const newWarnings: string[] = [];
 
         for (const { pattern, message } of DANGEROUS_PATTERNS) {
-            if (pattern.test(value))
+            if (pattern.test(value)) {
                 newWarnings.push(message);
+            }
         }
-
         if (value.startsWith('!')) {
             newWarnings.push('Shell command alias (starts with !). Use with caution.');
         }
@@ -149,15 +149,30 @@ export function AliasForm({
     }, [onClose]);
 
     return (
-        <div className="fixed inset-0 bg-ink/25 dark:bg-black/50 backdrop-blur-[3px] flex items-center justify-center z-[200] animate-fade-in" onClick={onClose}>
-            <div className="bg-paper dark:bg-paper-dark border border-pencil/20 dark:border-pencil-dark/20 sketchy w-[90%] max-w-[560px] flex flex-col overflow-hidden pencil-box animate-bounce-in" onClick={e => e.stopPropagation()}>
+        <div
+            className="fixed inset-0 backdrop-blur-[3px] flex items-center justify-center z-[200] animate-fade-in"
+            style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}
+            onClick={onClose}
+        >
+            <div
+                className="w-[90%] max-w-[560px] flex flex-col overflow-hidden animate-bounce-in rounded-xl border theme-card"
+                style={{ backgroundColor: 'var(--color-surface-raised)', borderColor: 'var(--color-border)' }}
+                onClick={e => e.stopPropagation()}
+            >
                 {/* Header */}
-                <div className="flex justify-between items-center px-6 py-4 border-b border-dashed border-paper-line dark:border-paper-line-dark">
-                    <h2 className="m-0 text-base font-bold text-ink dark:text-ink-dark flex items-center gap-2" id="alias-form-title">
+                <div className="flex justify-between items-center px-6 py-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
+                    <h2 className="m-0 text-base font-bold flex items-center gap-2" id="alias-form-title" style={{ color: 'var(--color-text)' }}>
                         <span className="inline-block animate-wiggle">{isEditing ? '✏️' : '📝'}</span>
-                        {isEditing ? 'Edit Alias' : 'New Alias'}
+                        {isEditing
+                            ? 'Edit Alias'
+                            : 'New Alias'}
                     </h2>
-                    <button className="bg-transparent border-none text-lg w-7 h-7 flex items-center justify-center cursor-pointer text-ink-faint dark:text-ink-faint-dark transition-all duration-200 hover:text-red-pen hover:scale-125 hover:rotate-90" onClick={onClose} aria-label="Close dialog">
+                    <button
+                        className="bg-transparent border-none text-lg w-7 h-7 flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-125 hover:rotate-90"
+                        style={{ color: 'var(--color-text-muted)' }}
+                        onClick={onClose}
+                        aria-label="Close dialog"
+                    >
                         ✕
                     </button>
                 </div>
@@ -166,17 +181,26 @@ export function AliasForm({
                     <div className="flex flex-col gap-5 py-5 px-6 max-h-[70vh] overflow-y-auto">
                         {/* Scope */}
                         <div className="flex items-center justify-between">
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-pencil dark:text-pencil-dark">Scope</label>
-                            <div className="flex bg-eraser/25 dark:bg-eraser-dark/25 rounded p-0.5 border border-pencil/8 dark:border-pencil-dark/8 relative" role="radiogroup" aria-label="Scope">
-                                {/* Sliding indicator */}
+                            <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Scope</label>
+                            <div
+                                className="flex rounded p-0.5 border relative"
+                                style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+                                role="radiogroup"
+                                aria-label="Scope"
+                            >
                                 <div
-                                    className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] bg-paper dark:bg-paper-dark border border-pencil/15 dark:border-pencil-dark/15 rounded pencil-box transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-none"
-                                    style={{ left: scope === 'global' ? '2px' : 'calc(50% + 2px)' }}
+                                    className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] border rounded transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-none"
+                                    style={{
+                                        left: scope === 'global' ? '2px' : 'calc(50% + 2px)',
+                                        backgroundColor: 'var(--color-scope-active-bg)',
+                                        borderColor: 'var(--color-border)',
+                                    }}
                                 />
                                 <button
                                     type="button"
                                     role="radio"
-                                    className={`px-3.5 py-1 text-sm font-bold transition-all duration-200 rounded relative z-[1] ${scope === 'global' ? 'text-blue-pen dark:text-blue-pen-dark' : 'bg-transparent text-pencil dark:text-pencil-dark border border-transparent hover:text-ink dark:hover:text-ink-dark'}`}
+                                    className="px-3.5 py-1 text-sm font-bold transition-all duration-200 rounded relative z-[1] bg-transparent border-none cursor-pointer"
+                                    style={{ color: scope === 'global' ? 'var(--color-badge-global-text)' : 'var(--color-text-muted)' }}
                                     onClick={() => setScope('global')}
                                     aria-checked={scope === 'global'}
                                 >
@@ -185,7 +209,8 @@ export function AliasForm({
                                 <button
                                     type="button"
                                     role="radio"
-                                    className={`px-3.5 py-1 text-sm font-bold transition-all duration-200 rounded relative z-[1] ${scope === 'local' ? 'text-purple-pen dark:text-purple-pen-dark' : 'bg-transparent text-pencil dark:text-pencil-dark border border-transparent hover:text-ink dark:hover:text-ink-dark'}`}
+                                    className="px-3.5 py-1 text-sm font-bold transition-all duration-200 rounded relative z-[1] bg-transparent border-none cursor-pointer"
+                                    style={{ color: scope === 'local' ? 'var(--color-badge-local-text)' : 'var(--color-text-muted)' }}
                                     onClick={() => setScope('local')}
                                     aria-checked={scope === 'local'}
                                 >
@@ -195,9 +220,12 @@ export function AliasForm({
                         </div>
 
                         {/* Folder Selection */}
-                        <div className={`flex items-center gap-2 bg-eraser/15 dark:bg-eraser-dark/15 border border-dashed border-pencil/12 dark:border-pencil-dark/12 py-1.5 px-3 rounded transition-all duration-300 ${scope === 'local' ? 'opacity-100 max-h-20' : 'opacity-25 max-h-20 pointer-events-none'}`}>
+                        <div
+                            className={`flex items-center gap-2 border border-dashed py-1.5 px-3 rounded transition-all duration-300 ${scope === 'local' ? 'opacity-100 max-h-20' : 'opacity-25 max-h-20 pointer-events-none'}`}
+                            style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+                        >
                             <span className="text-sm">📁</span>
-                            <span className="font-mono text-xs text-ink-light dark:text-ink-light-dark flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                            <span className="font-mono text-xs flex-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: 'var(--color-text-secondary)' }}>
                                 {scope === 'local'
                                     ? ((alias?.localPath || localPath) || 'No local repository selected')
                                     : 'Local repo (disabled for global)'}
@@ -205,7 +233,8 @@ export function AliasForm({
                             {onSelectFolder && !isEditing && (
                                 <button
                                     type="button"
-                                    className="whitespace-nowrap py-0.5 px-2 text-xs font-bold text-pencil dark:text-pencil-dark bg-paper dark:bg-paper-dark border border-pencil/15 dark:border-pencil-dark/15 rounded hover:bg-highlight-yellow/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer btn-press"
+                                    className="whitespace-nowrap py-0.5 px-2 text-xs font-bold border rounded disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer btn-press"
+                                    style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-scope-active-bg)', borderColor: 'var(--color-border)' }}
                                     onClick={async () => { await onSelectFolder(); }}
                                     disabled={scope !== 'local'}
                                 >
@@ -217,21 +246,27 @@ export function AliasForm({
                         {/* Browse Library Button */}
                         <button
                             type="button"
-                            className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-bold text-blue-pen dark:text-blue-pen-dark bg-blue-pen/5 dark:bg-blue-pen-dark/5 border border-dashed border-blue-pen/20 dark:border-blue-pen-dark/20 rounded transition-all duration-200 hover:bg-blue-pen/10 dark:hover:bg-blue-pen-dark/10 hover:border-blue-pen/35 dark:hover:border-blue-pen-dark/35 cursor-pointer btn-press"
+                            className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-bold border border-dashed rounded transition-all duration-200 cursor-pointer btn-press"
+                            style={{ color: 'var(--color-badge-global-text)', backgroundColor: 'var(--color-badge-global-bg)', borderColor: 'var(--color-badge-global-border)' }}
                             onClick={() => setShowLibrary(true)}
                         >
                             <span className="text-base">📚</span>
                             Browse Alias Library
-                            <span className="text-xs text-pencil dark:text-pencil-dark font-normal ml-1">(GitAlias)</span>
+                            <span className="text-xs font-normal ml-1" style={{ color: 'var(--color-text-muted)' }}>(GitAlias)</span>
                         </button>
 
                         {/* Command & Alias Name */}
                         <div className="flex items-start gap-4">
                             <div className="flex-[2] flex flex-col ink-underline">
-                                <label className="text-[11px] font-bold uppercase tracking-wider text-pencil dark:text-pencil-dark mb-2" htmlFor="aliasCommand">Command</label>
+                                <label className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }} htmlFor="aliasCommand">Command</label>
                                 <textarea
                                     id="aliasCommand"
-                                    className={`w-full bg-paper dark:bg-paper-dark border-2 ${commandError ? 'border-red-pen' : 'border-pencil/15 dark:border-pencil-dark/15'} rounded py-2 px-3 text-[15px] text-ink dark:text-ink-dark placeholder:text-ink-faint/40 dark:placeholder:text-ink-faint-dark/40 transition-all duration-200 focus-glow focus:outline-none resize-y font-mono min-h-[40px]`}
+                                    className="w-full border-2 rounded py-2 px-3 text-[15px] transition-all duration-200 focus-glow focus:outline-none resize-y font-mono min-h-[40px]"
+                                    style={{
+                                        backgroundColor: 'var(--color-surface)',
+                                        borderColor: commandError ? 'var(--color-danger)' : 'var(--color-border)',
+                                        color: 'var(--color-text)',
+                                    }}
                                     placeholder="e.g. checkout, status -sb"
                                     value={command}
                                     onChange={e => setCommand(e.target.value)}
@@ -241,21 +276,27 @@ export function AliasForm({
                                     aria-describedby={commandError ? 'command-error' : undefined}
                                 />
                                 {commandError && (
-                                    <div id="command-error" className="text-red-pen text-xs mt-1 font-bold animate-fade-in" aria-live="polite">
+                                    <div id="command-error" className="text-xs mt-1 font-bold animate-fade-in" style={{ color: 'var(--color-danger)' }} aria-live="polite">
                                         ✗
+                                        {' '}
                                         {commandError}
                                     </div>
                                 )}
                             </div>
 
                             <div className="flex-1 flex flex-col ink-underline">
-                                <label className="text-[11px] font-bold uppercase tracking-wider text-pencil dark:text-pencil-dark mb-2" htmlFor="aliasName">Alias Name</label>
+                                <label className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }} htmlFor="aliasName">Alias Name</label>
                                 <div className="relative flex items-center">
-                                    <span className="absolute left-3 font-mono text-ink-faint dark:text-ink-faint-dark text-sm font-bold pointer-events-none">git</span>
+                                    <span className="absolute left-3 font-mono text-sm font-bold pointer-events-none" style={{ color: 'var(--color-text-muted)' }}>git</span>
                                     <input
                                         id="aliasName"
                                         type="text"
-                                        className={`w-full bg-paper dark:bg-paper-dark border-2 ${nameError ? 'border-red-pen' : 'border-pencil/15 dark:border-pencil-dark/15'} rounded py-2 pl-10 pr-3 text-[15px] text-ink dark:text-ink-dark placeholder:text-ink-faint/40 dark:placeholder:text-ink-faint-dark/40 transition-all duration-200 focus-glow focus:outline-none`}
+                                        className="w-full border-2 rounded py-2 pl-10 pr-3 text-[15px] transition-all duration-200 focus-glow focus:outline-none"
+                                        style={{
+                                            backgroundColor: 'var(--color-surface)',
+                                            borderColor: nameError ? 'var(--color-danger)' : 'var(--color-border)',
+                                            color: 'var(--color-text)',
+                                        }}
                                         placeholder="e.g. co"
                                         value={name}
                                         onChange={e => setName(e.target.value)}
@@ -265,8 +306,9 @@ export function AliasForm({
                                     />
                                 </div>
                                 {nameError && (
-                                    <div id="name-error" className="text-red-pen text-xs mt-1 font-bold animate-fade-in" aria-live="polite">
+                                    <div id="name-error" className="text-xs mt-1 font-bold animate-fade-in" style={{ color: 'var(--color-danger)' }} aria-live="polite">
                                         ✗
+                                        {' '}
                                         {nameError}
                                     </div>
                                 )}
@@ -288,7 +330,11 @@ export function AliasForm({
                         {warnings.length > 0 && (
                             <div className="flex flex-col gap-1">
                                 {warnings.map((w, i) => (
-                                    <div key={i} className="bg-highlight-yellow/15 border border-dashed border-highlight-yellow/50 text-ink dark:text-ink-dark px-3 py-1.5 rounded text-sm flex items-center gap-2 animate-fade-in">
+                                    <div
+                                        key={i}
+                                        className="border border-dashed px-3 py-1.5 rounded text-sm flex items-center gap-2 animate-fade-in"
+                                        style={{ backgroundColor: 'var(--color-warning-muted)', borderColor: 'var(--color-warning)', color: 'var(--color-text)' }}
+                                    >
                                         <span>⚠</span>
                                         <span className="font-bold">{w}</span>
                                     </div>
@@ -298,26 +344,27 @@ export function AliasForm({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-3 px-6 py-4 border-t border-dashed border-paper-line dark:border-paper-line-dark">
+                    <div className="flex justify-end gap-3 px-6 py-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
                         <button
                             type="button"
-                            className="px-5 py-2 text-sm font-bold text-pencil dark:text-pencil-dark bg-transparent border border-pencil/15 dark:border-pencil-dark/15 rounded hover:bg-eraser/25 dark:hover:bg-eraser-dark/25 transition-all cursor-pointer btn-press"
+                            className="px-5 py-2 text-sm font-bold bg-transparent border rounded transition-all cursor-pointer btn-press"
+                            style={{ color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }}
                             onClick={onClose}
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-5 py-2 text-sm font-bold text-paper bg-blue-pen dark:bg-blue-pen-dark border border-blue-pen dark:border-blue-pen-dark rounded hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer pencil-box btn-press"
+                            className="px-5 py-2 text-sm font-bold text-white border-none rounded transition-all cursor-pointer btn-press disabled:opacity-40 disabled:cursor-not-allowed"
+                            style={{ backgroundColor: 'var(--color-primary)' }}
                             disabled={saving}
                         >
-                            {saving ? 'Saving…' : isEditing ? '✓ Save' : '✎ Write Alias'}
+                            {saving ? 'Saving…' : isEditing ? '✓ Save' : '✎ Create Alias'}
                         </button>
                     </div>
                 </form>
             </div>
 
-            {/* Library Picker Modal */}
             {showLibrary && (
                 <AliasLibraryPicker
                     onSelect={handleLibrarySelect}

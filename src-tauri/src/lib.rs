@@ -5,15 +5,18 @@ mod file_service;
 mod git_service;
 mod known_repos_service;
 mod ranking_service;
+mod settings_service;
 
 pub use commands::*;
 pub use git_service::GitService;
 pub use known_repos_service::KnownReposService;
 pub use ranking_service::RankingService;
+pub use settings_service::SettingsService;
 
 /// Shared application state managed by Tauri.
 pub struct AppState {
     pub git_service: RwLock<GitService>,
+    pub settings_service: RwLock<SettingsService>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -47,6 +50,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(AppState {
             git_service: RwLock::new(git_service),
+            settings_service: RwLock::new(SettingsService::new()),
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_aliases,
@@ -61,6 +65,8 @@ pub fn run() {
             commands::set_local_path,
             commands::open_local_folder,
             commands::open_external,
+            commands::get_theme,
+            commands::set_theme,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

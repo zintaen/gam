@@ -7,6 +7,8 @@ import { AliasList } from './components/AliasList';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { SearchBar } from './components/SearchBar';
 import { StatusBar } from './components/StatusBar';
+import { ThemeSettingsModal } from './components/ThemeSettingsModal';
+import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { ToastContainer } from './components/Toast';
 import { Toolbar } from './components/Toolbar';
 import { useAliasActions } from './hooks/useAliasActions';
@@ -32,13 +34,14 @@ export default function App() {
     } = useAliases();
 
     const { toasts, addToast, removeToast } = useToast();
-    const { theme, toggleTheme } = useTheme();
+    const { themeId, themeConfig, setThemeId, previewTheme, cancelPreview } = useTheme();
     const { localPath, setLocalPath, handleSelectFolder, handleClearFolder } = useLocalPath(addToast, fetchAliases);
     const { searchQuery, setSearchQuery, debouncedQuery, filteredAliases } = useSearch(aliases);
 
     const [showForm, setShowForm] = useState(false);
     const [editingAlias, setEditingAlias] = useState<I_GitAlias | null>(null);
     const [deletingAlias, setDeletingAlias] = useState<I_GitAlias | null>(null);
+    const [showThemeSettings, setShowThemeSettings] = useState(false);
 
     useDragDrop(setLocalPath, fetchAliases, addToast);
 
@@ -89,30 +92,46 @@ export default function App() {
             {/* Title Bar */}
             <div className="relative z-[100]">
                 <div
-                    className="titlebar h-11 flex items-center justify-center border-b border-pencil/10 dark:border-pencil-dark/10 bg-paper/80 dark:bg-paper-dark/80 glass relative"
+                    className="titlebar h-11 flex items-center justify-center border-b glass relative"
+                    style={{
+                        borderColor: 'var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        backdropFilter: 'var(--theme-card-backdrop)',
+                    }}
                 >
-                    {/* Subtle red margin line */}
-                    <div className="absolute left-10 top-0 bottom-0 w-px bg-red-pen/15" />
-                    <span className="text-sm font-bold tracking-[2px] text-ink dark:text-ink-dark uppercase flex items-center gap-1.5">
-                        <span className="marker-yellow px-1">✎ GAM</span>
-                        <span className="text-[10px] font-normal text-ink-faint dark:text-ink-faint-dark tracking-normal bg-eraser/30 dark:bg-eraser-dark/30 px-1.5 py-px rounded">v1.0.0</span>
+                    {/* Red margin line (notebook only) */}
+                    <div className="nb-margin-line absolute left-10 top-0 bottom-0 w-px" style={{ backgroundColor: 'var(--color-danger)', opacity: 0.15 }} />
+
+                    <span className="text-sm font-bold tracking-[2px] uppercase flex items-center gap-1.5" style={{ color: 'var(--color-text)' }}>
+                        <span className="px-1" style={{ color: 'var(--color-text)' }}>
+                            {themeConfig.style === 'notebook' ? '✎' : themeConfig.style === 'glassmorphism' ? '◈' : '⌨'}
+                            {' '}
+                            GAM
+                        </span>
+                        <span
+                            className="text-[10px] font-normal tracking-normal px-1.5 py-px rounded"
+                            style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface-hover)' }}
+                        >
+                            v1.0.0
+                        </span>
                     </span>
-                    <button
-                        className="theme-toggle absolute right-4 bg-transparent border-none cursor-pointer text-lg text-ink-faint dark:text-ink-faint-dark hover:text-ink dark:hover:text-ink-dark transition-all duration-300 hover:scale-125 hover:rotate-[20deg] active:scale-95"
-                        onClick={toggleTheme}
-                        title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
-                    >
-                        <span className="inline-block transition-transform duration-500">{theme === 'light' ? '🌙' : '☀️'}</span>
-                    </button>
+
+                    <ThemeSwitcher
+                        themeId={themeId}
+                        onSelect={setThemeId}
+                        onPreview={previewTheme}
+                        onCancelPreview={cancelPreview}
+                        onOpenSettings={() => setShowThemeSettings(true)}
+                    />
                 </div>
                 {/* Animated gradient accent strip */}
-                <div className="gradient-accent h-[2px] w-full" />
+                <div className="gradient-accent theme-gradient-accent h-[2px] w-full" />
             </div>
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col px-6 py-5 gap-5 overflow-hidden relative">
-                {/* Red margin line */}
-                <div className="absolute left-10 top-0 bottom-0 w-px bg-red-pen/8 z-0 pointer-events-none" />
+                {/* Red margin line (notebook only) */}
+                <div className="nb-margin-line absolute left-10 top-0 bottom-0 w-px z-0 pointer-events-none" style={{ backgroundColor: 'var(--color-danger)', opacity: 0.08 }} />
 
                 <Toolbar
                     scope={scope}
@@ -134,7 +153,10 @@ export default function App() {
                 />
 
                 {error && (
-                    <div className="sketchy-sm bg-red-pen/8 dark:bg-red-pen/12 border border-red-pen/25 text-red-pen px-5 py-3 flex items-center gap-3">
+                    <div
+                        className="rounded-lg border px-5 py-3 flex items-center gap-3"
+                        style={{ backgroundColor: 'var(--color-danger-muted)', borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
+                    >
                         <span className="font-bold text-lg">✗</span>
                         <span className="text-sm font-bold">{error}</span>
                     </div>
@@ -180,6 +202,22 @@ export default function App() {
                     confirmDanger
                     onConfirm={handleConfirmDelete}
                     onCancel={() => setDeletingAlias(null)}
+                />
+            )}
+
+            {showThemeSettings && (
+                <ThemeSettingsModal
+                    currentThemeId={themeId}
+                    onSelect={(id) => {
+                        setThemeId(id);
+                        setShowThemeSettings(false);
+                    }}
+                    onPreview={previewTheme}
+                    onCancelPreview={cancelPreview}
+                    onClose={() => {
+                        cancelPreview();
+                        setShowThemeSettings(false);
+                    }}
                 />
             )}
 
