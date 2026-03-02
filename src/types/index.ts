@@ -30,6 +30,14 @@ export interface I_ExportData {
     version: string;
     exportedAt: string;
     aliases: I_GitAlias[];
+    groups?: I_AliasGroup[];
+    assignments?: Record<string, string[]>;
+}
+
+export interface I_AliasGroup {
+    id: string;
+    name: string;
+    color: string;
 }
 
 export interface I_AppAPI {
@@ -60,6 +68,14 @@ export interface I_AppAPI {
     openExternal: (url: string) => Promise<I_IpcResult>;
     getTheme: () => Promise<I_IpcResult<string>>;
     setTheme: (themeId: string) => Promise<I_IpcResult>;
+    // Groups
+    getGroups: () => Promise<I_IpcResult<I_AliasGroup[]>>;
+    createGroup: (name: string, color: string) => Promise<I_IpcResult<I_AliasGroup>>;
+    renameGroup: (groupId: string, newName: string) => Promise<I_IpcResult>;
+    setGroupColor: (groupId: string, color: string) => Promise<I_IpcResult>;
+    deleteGroup: (groupId: string) => Promise<I_IpcResult>;
+    setAliasGroups: (aliasName: string, groupIds: string[]) => Promise<I_IpcResult>;
+    getAllGroupAssignments: () => Promise<I_IpcResult<Record<string, string[]>>>;
 }
 
 // ── Theme System ────────────────────────────────────────────

@@ -130,10 +130,19 @@ impl RankingService {
                 Self::parse_zsh_history(&content, &mut new_cache);
             }
 
-            // Try bash history (plain lines, no timestamps)
+            // Try bash history (plain lines or with timestamps)
             let bash_path = home.join(".bash_history");
             if let Ok(content) = fs::read_to_string(&bash_path) {
-                Self::parse_plain_history(&content, &mut new_cache);
+                Self::parse_bash_history(&content, &mut new_cache);
+            }
+
+            // Try Fish history (~/.local/share/fish/fish_history)
+            let fish_path = dirs::data_dir()
+                .unwrap_or_else(|| home.join(".local").join("share"))
+                .join("fish")
+                .join("fish_history");
+            if let Ok(content) = fs::read_to_string(&fish_path) {
+                Self::parse_fish_history(&content, &mut new_cache);
             }
         } else {
             // PowerShell history on Windows
@@ -187,7 +196,7 @@ impl RankingService {
         }
     }
 
-    /// Parse plain history (bash, PowerShell) — no timestamps available.
+    /// Parse plain history (PowerShell) — no timestamps available.
     fn parse_plain_history(content: &str, cache: &mut HashMap<String, HistoryEntry>) {
         if let Ok(re) = regex_lite::Regex::new(r"git\s+([\w-]+)") {
             for cap in re.captures_iter(content) {
@@ -198,7 +207,106 @@ impl RankingService {
                         last_seen: 0,
                     });
                     entry.frequency += 1.0;
-                    // No timestamp info for plain history
+                }
+            }
+        }
+    }
+
+    /// Parse bash history — handles both plain and timestamped format.
+    /// Timestamped format: lines starting with `#1234567890` followed by the command on the next line.
+    fn parse_bash_history(content: &str, cache: &mut HashMap<String, HistoryEntry>) {
+        let lines: Vec<&str> = content.lines().collect();
+        let git_re = regex_lite::Regex::new(r"git\s+([\w-]+)").unwrap();
+
+        let mut i = 0;
+        while i < lines.len() {
+            let line = lines[i];
+
+            // Check for timestamp prefix: #1234567890
+            if line.starts_with('#') {
+                if let Ok(ts) = line[1..].trim().parse::<u64>() {
+                    // Next line is the command
+                    if i + 1 < lines.len() {
+                        if let Some(cap) = git_re.captures(lines[i + 1]) {
+                            if let Some(cmd) = cap.get(1) {
+                                let key = format!("git {}", cmd.as_str());
+                                let entry = cache.entry(key).or_insert(HistoryEntry {
+                                    frequency: 0.0,
+                                    last_seen: 0,
+                                });
+                                entry.frequency += 1.0;
+                                if ts > entry.last_seen {
+                                    entry.last_seen = ts;
+                                }
+                            }
+                        }
+                        i += 2;
+                        continue;
+                    }
+                }
+            }
+
+            // Plain line (no timestamp)
+            if let Some(cap) = git_re.captures(line) {
+                if let Some(cmd) = cap.get(1) {
+                    let key = format!("git {}", cmd.as_str());
+                    let entry = cache.entry(key).or_insert(HistoryEntry {
+                        frequency: 0.0,
+                        last_seen: 0,
+                    });
+                    entry.frequency += 1.0;
+                }
+            }
+
+            i += 1;
+        }
+    }
+
+    /// Parse Fish shell history (YAML-like format):
+    /// ```text
+    /// - cmd: git checkout main
+    ///   when: 1700000000
+    /// ```
+    fn parse_fish_history(content: &str, cache: &mut HashMap<String, HistoryEntry>) {
+        let git_re = regex_lite::Regex::new(r"git\s+([\w-]+)").unwrap();
+        let mut current_cmd: Option<String> = None;
+
+        for line in content.lines() {
+            let trimmed = line.trim();
+
+            if let Some(cmd_part) = trimmed.strip_prefix("- cmd:") {
+                current_cmd = Some(cmd_part.trim().to_string());
+            } else if let Some(when_part) = trimmed.strip_prefix("when:") {
+                if let Some(ref cmd) = current_cmd {
+                    let timestamp: u64 = when_part.trim().parse().unwrap_or(0);
+                    if let Some(cap) = git_re.captures(cmd) {
+                        if let Some(m) = cap.get(1) {
+                            let key = format!("git {}", m.as_str());
+                            let entry = cache.entry(key).or_insert(HistoryEntry {
+                                frequency: 0.0,
+                                last_seen: 0,
+                            });
+                            entry.frequency += 1.0;
+                            if timestamp > entry.last_seen {
+                                entry.last_seen = timestamp;
+                            }
+                        }
+                    }
+                }
+                current_cmd = None;
+            }
+        }
+
+        // Handle trailing cmd without when
+        if let Some(ref cmd) = current_cmd {
+            if let Some(cap) = git_re.captures(cmd) {
+                if let Some(m) = cap.get(1) {
+                    let key = format!("git {}", m.as_str());
+                    let entry = cache.entry(key).or_insert(HistoryEntry {
+                        frequency: 0.0,
+                        last_seen: 0,
+                    });
+                    entry.frequency += 1.0;
                 }
             }
         }
@@ -271,5 +379,57 @@ mod tests {
         assert_eq!(MULTIPLIER_1D, 2.0);
         assert_eq!(MULTIPLIER_1W, 0.5);
         assert_eq!(MULTIPLIER_OLD, 0.25);
+    }
+
+    #[test]
+    fn parse_fish_history_extracts_commands_with_timestamps() {
+        let content = "- cmd: git checkout main\n  when: 1700000000\n- cmd: git status\n  when: 1700000100\n- cmd: ls -la\n  when: 1700000200\n";
+        let mut cache = HashMap::new();
+        RankingService::parse_fish_history(content, &mut cache);
+
+        let co = cache.get("git checkout").unwrap();
+        assert_eq!(co.frequency, 1.0);
+        assert_eq!(co.last_seen, 1700000000);
+
+        let st = cache.get("git status").unwrap();
+        assert_eq!(st.frequency, 1.0);
+        assert_eq!(st.last_seen, 1700000100);
+
+        assert!(cache.get("git ls").is_none());
+    }
+
+    #[test]
+    fn parse_fish_history_handles_no_when() {
+        let content = "- cmd: git push origin main\n";
+        let mut cache = HashMap::new();
+        RankingService::parse_fish_history(content, &mut cache);
+
+        assert_eq!(cache.get("git push").unwrap().frequency, 1.0);
+    }
+
+    #[test]
+    fn parse_bash_history_with_timestamps() {
+        let content = "#1700000000\ngit checkout main\n#1700000100\ngit status\n#1700000200\nls -la\n";
+        let mut cache = HashMap::new();
+        RankingService::parse_bash_history(content, &mut cache);
+
+        let co = cache.get("git checkout").unwrap();
+        assert_eq!(co.frequency, 1.0);
+        assert_eq!(co.last_seen, 1700000000);
+
+        let st = cache.get("git status").unwrap();
+        assert_eq!(st.frequency, 1.0);
+        assert_eq!(st.last_seen, 1700000100);
+    }
+
+    #[test]
+    fn parse_bash_history_plain_lines() {
+        let content = "git commit -m 'test'\ngit push\nls\n";
+        let mut cache = HashMap::new();
+        RankingService::parse_bash_history(content, &mut cache);
+
+        assert_eq!(cache.get("git commit").unwrap().frequency, 1.0);
+        assert_eq!(cache.get("git push").unwrap().frequency, 1.0);
+        assert!(cache.get("git ls").is_none());
     }
 }

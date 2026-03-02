@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { I_GitAlias } from '#/types';
 
 import { AliasForm } from './components/AliasForm';
 import { AliasList } from './components/AliasList';
 import { ConfirmDialog } from './components/ConfirmDialog';
+import { GroupSidebar } from './components/GroupSidebar';
 import { SearchBar } from './components/SearchBar';
 import { SettingsDropdown } from './components/SettingsDropdown';
 import { StatusBar } from './components/StatusBar';
@@ -15,6 +16,7 @@ import { UpdateModal } from './components/UpdateModal';
 import { useAliasActions } from './hooks/useAliasActions';
 import { useAliases } from './hooks/useAliases';
 import { useDragDrop } from './hooks/useDragDrop';
+import { useGroups } from './hooks/useGroups';
 import { useLocalPath } from './hooks/useLocalPath';
 import { useSearch } from './hooks/useSearch';
 import { useTheme } from './hooks/useTheme';
@@ -24,6 +26,29 @@ import { APP_VERSION } from './lib/constants';
 import { isTauri, tauriAPI } from './lib/tauri';
 
 export default function App() {
+    // Global error tracking
+    useEffect(() => {
+        const handleError = (event: ErrorEvent) => {
+            console.error('[GAM] Uncaught error:', event.message, event.filename, event.lineno);
+        };
+        const handleRejection = (event: PromiseRejectionEvent) => {
+            console.error('[GAM] Unhandled rejection:', event.reason);
+        };
+
+        window.addEventListener('error', handleError);
+        window.addEventListener('unhandledrejection', handleRejection);
+
+        // Startup timing
+        if (typeof performance !== 'undefined') {
+            const renderTime = performance.now();
+            console.info(`[GAM] Frontend render in ${renderTime.toFixed(0)}ms`);
+        }
+
+        return () => {
+            window.removeEventListener('error', handleError);
+            window.removeEventListener('unhandledrejection', handleRejection);
+        };
+    }, []);
     const {
         aliases,
         loading,
@@ -60,6 +85,38 @@ export default function App() {
     } = useUpdater();
 
     const existingNames = useMemo(() => aliases.map(a => a.name), [aliases]);
+
+    const {
+        groups,
+        assignments,
+        activeGroupId,
+        setActiveGroupId,
+        createGroup,
+        renameGroup,
+        setGroupColor,
+        deleteGroup,
+        setAliasGroups,
+    } = useGroups();
+
+    // Count aliases per group
+    const groupAliasCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        for (const ids of Object.values(assignments)) {
+            for (const id of ids) {
+                counts[id] = (counts[id] ?? 0) + 1;
+            }
+        }
+        return counts;
+    }, [assignments]);
+
+    // Filter by active group
+    const groupFilteredAliases = useMemo(() => {
+        if (!activeGroupId)
+            return filteredAliases;
+        return filteredAliases.filter(a =>
+            (assignments[a.name] ?? []).includes(activeGroupId),
+        );
+    }, [filteredAliases, activeGroupId, assignments]);
 
     const {
         handleSave,
@@ -148,53 +205,91 @@ export default function App() {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col px-6 py-5 gap-5 overflow-hidden relative">
-                {/* Red margin line (notebook only) */}
-                <div className="nb-margin-line absolute left-10 top-0 bottom-0 w-px z-0 pointer-events-none" style={{ backgroundColor: 'var(--color-danger)', opacity: 0.08 }} />
+            <div className="flex-1 flex overflow-hidden relative">
+                {/* Group sidebar */}
+                <div
+                    className="shrink-0 border-r px-2 py-3 overflow-y-auto"
+                    style={{
+                        borderColor: 'var(--color-border)',
+                        backgroundColor: 'var(--color-surface)',
+                        width: 200,
+                    }}
+                >
+                    <GroupSidebar
+                        groups={groups}
+                        activeGroupId={activeGroupId}
+                        onSelectGroup={setActiveGroupId}
+                        onCreateGroup={createGroup}
+                        onRenameGroup={renameGroup}
+                        onSetGroupColor={setGroupColor}
+                        onDeleteGroup={deleteGroup}
+                        aliasCount={groupAliasCounts}
+                    />
+                </div>
 
-                <Toolbar
-                    scope={scope}
-                    onScopeChange={setScope as any}
-                    onAdd={handleAdd}
-                    localPath={localPath}
-                    onSelectFolder={handleSelectFolder}
-                    onClearFolder={handleClearFolder}
-                />
+                {/* Content area */}
+                <div className="flex-1 flex flex-col px-6 py-5 gap-5 overflow-hidden relative">
+                    {/* Red margin line (notebook only) */}
+                    <div className="nb-margin-line absolute left-10 top-0 bottom-0 w-px z-0 pointer-events-none" style={{ backgroundColor: 'var(--color-danger)', opacity: 0.08 }} />
 
-                <SearchBar
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    resultCount={filteredAliases.length}
-                    totalCount={aliases.length}
-                />
+                    <Toolbar
+                        scope={scope}
+                        onScopeChange={setScope as any}
+                        onAdd={handleAdd}
+                        localPath={localPath}
+                        onSelectFolder={handleSelectFolder}
+                        onClearFolder={handleClearFolder}
+                    />
 
-                {error && (
-                    <div
-                        className="rounded-lg border px-5 py-3 flex items-center gap-3"
-                        style={{ backgroundColor: 'var(--color-danger-muted)', borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
-                    >
-                        <span className="font-bold text-lg">✗</span>
-                        <span className="text-sm font-bold">{error}</span>
-                    </div>
-                )}
+                    <SearchBar
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        resultCount={filteredAliases.length}
+                        totalCount={aliases.length}
+                    />
 
-                <AliasList
-                    aliases={filteredAliases}
-                    loading={loading}
-                    searchQuery={debouncedQuery}
-                    localPath={localPath}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onOpenLocalFolder={handleOpenLocalFolder}
-                />
+                    {error && (
+                        <div
+                            className="rounded-lg border px-5 py-3 flex items-center gap-3"
+                            style={{ backgroundColor: 'var(--color-danger-muted)', borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
+                        >
+                            <span className="font-bold text-lg">✗</span>
+                            <span className="text-sm font-bold">{error}</span>
+                        </div>
+                    )}
 
-                <StatusBar
-                    totalAliases={aliases.length}
-                    filteredCount={filteredAliases.length}
-                    scope={scope}
-                    isSearching={!!searchQuery}
-                    onOpenExternal={handleOpenExternal}
-                />
+                    <AliasList
+                        aliases={groupFilteredAliases}
+                        loading={loading}
+                        searchQuery={debouncedQuery}
+                        localPath={localPath}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onOpenLocalFolder={handleOpenLocalFolder}
+                        groups={groups}
+                        assignments={assignments}
+                        onSetAliasGroups={setAliasGroups}
+                    />
+
+                    {(() => {
+                        const activeGroupName = activeGroupId ? groups.find(g => g.id === activeGroupId)?.name : undefined;
+                        const q = debouncedQuery.toLowerCase();
+                        const displayCount = q
+                            ? groupFilteredAliases.filter(a => a.name.toLowerCase().includes(q) || a.command.toLowerCase().includes(q)).length
+                            : groupFilteredAliases.length;
+
+                        return (
+                            <StatusBar
+                                totalAliases={aliases.length}
+                                filteredCount={displayCount}
+                                scope={scope}
+                                isSearching={!!searchQuery}
+                                activeGroupName={activeGroupName}
+                                onOpenExternal={handleOpenExternal}
+                            />
+                        );
+                    })()}
+                </div>
             </div>
 
             {showForm && (

@@ -4,6 +4,7 @@ use std::time::SystemTime;
 use serde::{Deserialize, Serialize};
 
 use crate::git_service::GitAlias;
+use crate::group_service::{AliasGroup, GroupData};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExportData {
@@ -11,17 +12,27 @@ pub struct ExportData {
     #[serde(rename = "exportedAt")]
     pub exported_at: String,
     pub aliases: Vec<GitAlias>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub groups: Option<Vec<AliasGroup>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub assignments: Option<std::collections::HashMap<String, Vec<String>>>,
 }
 
 /// Handles export and import of alias data to/from JSON files.
 pub struct FileService;
 
 impl FileService {
-    pub fn export_aliases(aliases: &[GitAlias], file_path: &str) -> Result<String, String> {
+    pub fn export_aliases(
+        aliases: &[GitAlias],
+        file_path: &str,
+        group_data: Option<&GroupData>,
+    ) -> Result<String, String> {
         let export_data = ExportData {
             version: "1.0.0".to_string(),
             exported_at: iso8601_now(),
             aliases: aliases.to_vec(),
+            groups: group_data.map(|gd| gd.groups.clone()),
+            assignments: group_data.map(|gd| gd.assignments.clone()),
         };
 
         let json = serde_json::to_string_pretty(&export_data)
@@ -131,7 +142,7 @@ mod tests {
             local_path: None,
             score: None,
         }];
-        FileService::export_aliases(&aliases, tmp.to_str().unwrap()).unwrap();
+        FileService::export_aliases(&aliases, tmp.to_str().unwrap(), None).unwrap();
 
         let content = fs::read_to_string(&tmp).unwrap();
         let data: ExportData = serde_json::from_str(&content).unwrap();
@@ -187,7 +198,7 @@ mod tests {
             },
         ];
 
-        FileService::export_aliases(&original, tmp.to_str().unwrap()).unwrap();
+        FileService::export_aliases(&original, tmp.to_str().unwrap(), None).unwrap();
         let imported = FileService::import_aliases(tmp.to_str().unwrap()).unwrap();
 
         assert_eq!(imported.len(), 2);

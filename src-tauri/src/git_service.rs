@@ -311,3 +311,127 @@ impl GitService {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_alias_output_parses_global_aliases() {
+        let output = "alias.co checkout\nalias.st status -sb\n";
+        let aliases = GitService::parse_alias_output(output, "global", None);
+
+        assert_eq!(aliases.len(), 2);
+        assert_eq!(aliases[0].name, "co");
+        assert_eq!(aliases[0].command, "checkout");
+        assert_eq!(aliases[0].scope, "global");
+        assert!(aliases[0].local_path.is_none());
+    }
+
+    #[test]
+    fn parse_alias_output_handles_local_path() {
+        let output = "alias.lg log --oneline --graph\n";
+        let aliases = GitService::parse_alias_output(output, "local", Some("/tmp/repo".to_string()));
+
+        assert_eq!(aliases.len(), 1);
+        assert_eq!(aliases[0].scope, "local");
+        assert_eq!(aliases[0].local_path, Some("/tmp/repo".to_string()));
+    }
+
+    #[test]
+    fn parse_alias_output_handles_empty_input() {
+        let aliases = GitService::parse_alias_output("", "global", None);
+        assert!(aliases.is_empty());
+    }
+
+    #[test]
+    fn parse_alias_output_skips_empty_lines() {
+        let output = "alias.co checkout\n\n\nalias.st status\n";
+        let aliases = GitService::parse_alias_output(output, "global", None);
+        assert_eq!(aliases.len(), 2);
+    }
+
+    #[test]
+    fn parse_alias_output_handles_multiword_commands() {
+        let output = "alias.lg log --oneline --graph --decorate --all\n";
+        let aliases = GitService::parse_alias_output(output, "global", None);
+        assert_eq!(aliases[0].command, "log --oneline --graph --decorate --all");
+    }
+
+    #[test]
+    fn validate_empty_command() {
+        let svc = GitService::new();
+        let result = svc.validate_command("");
+        assert!(!result.valid);
+        assert!(!result.errors.is_empty());
+    }
+
+    #[test]
+    fn validate_whitespace_only_command() {
+        let svc = GitService::new();
+        let result = svc.validate_command("   ");
+        assert!(!result.valid);
+    }
+
+    #[test]
+    fn validate_safe_command() {
+        let svc = GitService::new();
+        let result = svc.validate_command("checkout -b");
+        assert!(result.valid);
+        assert!(result.warnings.is_empty());
+    }
+
+    #[test]
+    fn validate_force_push_warning() {
+        let svc = GitService::new();
+        let result = svc.validate_command("push origin --force");
+        assert!(result.valid);
+        assert!(!result.warnings.is_empty());
+        assert!(result.warnings.iter().any(|w| w.contains("force push")));
+    }
+
+    #[test]
+    fn validate_rm_rf_warning() {
+        let svc = GitService::new();
+        let result = svc.validate_command("!rm -rf /tmp/test");
+        assert!(result.valid);
+        assert!(result.warnings.iter().any(|w| w.contains("recursive delete")));
+    }
+
+    #[test]
+    fn validate_shell_command_warning() {
+        let svc = GitService::new();
+        let result = svc.validate_command("!echo hello");
+        assert!(result.valid);
+        assert!(result.warnings.iter().any(|w| w.contains("shell command")));
+    }
+
+    #[test]
+    fn validate_reset_hard_warning() {
+        let svc = GitService::new();
+        let result = svc.validate_command("reset --hard HEAD~1");
+        assert!(result.valid);
+        assert!(result.warnings.iter().any(|w| w.contains("hard reset")));
+    }
+
+    #[test]
+    fn new_service_has_no_local_path() {
+        let svc = GitService::new();
+        assert!(svc.get_local_path().is_none());
+    }
+
+    #[test]
+    fn set_and_get_local_path() {
+        let mut svc = GitService::new();
+        svc.set_local_path(Some("/tmp/test-repo".to_string()));
+        assert_eq!(svc.get_local_path(), Some("/tmp/test-repo".to_string()));
+    }
+
+    #[test]
+    fn clear_local_path() {
+        let mut svc = GitService::new();
+        svc.set_local_path(Some("/tmp/test-repo".to_string()));
+        svc.set_local_path(None);
+        assert!(svc.get_local_path().is_none());
+    }
+}

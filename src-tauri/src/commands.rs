@@ -157,6 +157,7 @@ pub fn set_local_path(
 #[tauri::command]
 pub async fn export_aliases(
     app: tauri::AppHandle,
+    state: State<'_, AppState>,
     aliases: Vec<GitAlias>,
 ) -> Result<IpcResult<String>, String> {
     let now = std::time::SystemTime::now()
@@ -177,7 +178,8 @@ pub async fn export_aliases(
     match file_path {
         Some(path) => {
             let path_str = path.into_path().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
-            match FileService::export_aliases(&aliases, &path_str) {
+            let group_data = state.group_service.read().unwrap().get_data();
+            match FileService::export_aliases(&aliases, &path_str, Some(&group_data)) {
                 Ok(p) => Ok(IpcResult::ok(p)),
                 Err(e) => Ok(IpcResult::err(e)),
             }
@@ -189,6 +191,7 @@ pub async fn export_aliases(
 #[tauri::command]
 pub async fn import_aliases(
     app: tauri::AppHandle,
+    state: State<'_, AppState>,
 ) -> Result<IpcResult<Vec<GitAlias>>, String> {
     let file_path = app
         .dialog()
@@ -201,6 +204,21 @@ pub async fn import_aliases(
     match file_path {
         Some(path) => {
             let path_str = path.into_path().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
+
+            // Also import group data if present in the file
+            if let Ok(content) = std::fs::read_to_string(&path_str) {
+                if let Ok(export_data) = serde_json::from_str::<crate::file_service::ExportData>(&content) {
+                    if export_data.groups.is_some() || export_data.assignments.is_some() {
+                        let incoming = crate::group_service::GroupData {
+                            groups: export_data.groups.unwrap_or_default(),
+                            assignments: export_data.assignments.unwrap_or_default(),
+                        };
+                        let mut group_svc = state.group_service.write().unwrap();
+                        group_svc.import_data(incoming);
+                    }
+                }
+            }
+
             match FileService::import_aliases(&path_str) {
                 Ok(aliases) => Ok(IpcResult::ok(aliases)),
                 Err(e) => Ok(IpcResult::err(e)),
@@ -244,4 +262,76 @@ pub fn set_theme(state: State<'_, AppState>, theme_id: String) -> IpcResult<bool
     let mut settings = state.settings_service.write().unwrap();
     settings.set("theme", &theme_id);
     IpcResult::ok(true)
+}
+
+// ── Group management ───────────────────────────────────────
+
+#[tauri::command]
+pub fn get_groups(state: State<'_, AppState>) -> IpcResult<Vec<crate::group_service::AliasGroup>> {
+    let group_svc = state.group_service.read().unwrap();
+    IpcResult::ok(group_svc.get_groups())
+}
+
+#[tauri::command]
+pub fn create_group(
+    state: State<'_, AppState>,
+    name: String,
+    color: String,
+) -> IpcResult<crate::group_service::AliasGroup> {
+    let mut group_svc = state.group_service.write().unwrap();
+    IpcResult::ok(group_svc.create_group(&name, &color))
+}
+
+#[tauri::command]
+pub fn rename_group(
+    state: State<'_, AppState>,
+    group_id: String,
+    new_name: String,
+) -> IpcResult<bool> {
+    let mut group_svc = state.group_service.write().unwrap();
+    match group_svc.rename_group(&group_id, &new_name) {
+        Ok(()) => IpcResult::ok(true),
+        Err(e) => IpcResult::err(e),
+    }
+}
+
+#[tauri::command]
+pub fn set_group_color(
+    state: State<'_, AppState>,
+    group_id: String,
+    color: String,
+) -> IpcResult<bool> {
+    let mut group_svc = state.group_service.write().unwrap();
+    match group_svc.set_group_color(&group_id, &color) {
+        Ok(()) => IpcResult::ok(true),
+        Err(e) => IpcResult::err(e),
+    }
+}
+
+#[tauri::command]
+pub fn delete_group(state: State<'_, AppState>, group_id: String) -> IpcResult<bool> {
+    let mut group_svc = state.group_service.write().unwrap();
+    match group_svc.delete_group(&group_id) {
+        Ok(()) => IpcResult::ok(true),
+        Err(e) => IpcResult::err(e),
+    }
+}
+
+#[tauri::command]
+pub fn set_alias_groups(
+    state: State<'_, AppState>,
+    alias_name: String,
+    group_ids: Vec<String>,
+) -> IpcResult<bool> {
+    let mut group_svc = state.group_service.write().unwrap();
+    group_svc.set_alias_groups(&alias_name, group_ids);
+    IpcResult::ok(true)
+}
+
+#[tauri::command]
+pub fn get_all_group_assignments(
+    state: State<'_, AppState>,
+) -> IpcResult<std::collections::HashMap<String, Vec<String>>> {
+    let group_svc = state.group_service.read().unwrap();
+    IpcResult::ok(group_svc.get_all_assignments())
 }

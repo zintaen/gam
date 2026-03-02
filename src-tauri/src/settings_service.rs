@@ -50,3 +50,90 @@ impl SettingsService {
         self.save();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::path::Path;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    fn temp_settings() -> (SettingsService, PathBuf) {
+        let id = COUNTER.fetch_add(1, Ordering::SeqCst);
+        let dir = std::env::temp_dir().join(format!("gam_test_settings_{}_{}", std::process::id(), id));
+        let _ = fs::remove_dir_all(&dir);
+        let _ = fs::create_dir_all(&dir);
+        let config_path = dir.join("settings.json");
+        let service = SettingsService {
+            config_path: config_path.clone(),
+            settings: HashMap::new(),
+        };
+        (service, dir)
+    }
+
+    fn cleanup(dir: &Path) {
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn get_returns_none_for_missing_key() {
+        let (svc, dir) = temp_settings();
+        assert!(svc.get("nonexistent").is_none());
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn set_and_get_roundtrip() {
+        let (mut svc, dir) = temp_settings();
+        svc.set("theme", "cybercore-dark");
+        assert_eq!(svc.get("theme"), Some("cybercore-dark".to_string()));
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn set_overwrites_existing() {
+        let (mut svc, dir) = temp_settings();
+        svc.set("theme", "sketch-dark");
+        svc.set("theme", "gothic-light");
+        assert_eq!(svc.get("theme"), Some("gothic-light".to_string()));
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn save_creates_json_file() {
+        let (mut svc, dir) = temp_settings();
+        svc.set("key", "value");
+        assert!(svc.config_path.exists(), "Config file was not created at {:?}", svc.config_path);
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn load_restores_saved_settings() {
+        let dir = std::env::temp_dir().join(format!("gam_test_settings_load_{}", std::process::id()));
+        let _ = fs::create_dir_all(&dir);
+        let config_path = dir.join("settings.json");
+
+        // Save
+        {
+            let mut svc = SettingsService {
+                config_path: config_path.clone(),
+                settings: HashMap::new(),
+            };
+            svc.set("theme", "pixel-dark");
+        }
+
+        // Load
+        {
+            let mut svc = SettingsService {
+                config_path,
+                settings: HashMap::new(),
+            };
+            svc.load();
+            assert_eq!(svc.get("theme"), Some("pixel-dark".to_string()));
+        }
+
+        let _ = fs::remove_dir_all(&dir);
+    }
+}

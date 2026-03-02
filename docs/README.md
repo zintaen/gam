@@ -144,85 +144,57 @@ The Tauri window opens automatically (first run compiles Rust backend ~2-3 min).
 ## 🧪 Testing
 
 ```bash
-# Run all tests (82 tests)
+# Run all tests (229 tests: 174 frontend + 55 Rust)
 pnpm test
 
 # Run with coverage report
 pnpm test -- --coverage
 
+# Run Rust tests
+cd src-tauri && cargo test
+
 # Run in watch mode
 pnpm test:watch
 ```
 
-**Test coverage (6 suites, 59 tests):**
+**Test coverage (22 suites, 174 frontend + 55 Rust tests):**
 
-| Suite                        | Tests | Covers                                                   |
-| ---------------------------- | ----- | -------------------------------------------------------- |
-| `types.test.ts`              | 6     | TypeScript interface verification                        |
-| `suggestion-service.test.ts` | 18    | All 5 suggestion schemes, conflict filtering, edge cases |
-| `gitalias-library.test.ts`   | 14    | Library data integrity, search, category filtering       |
-| `App.test.tsx`               | 2     | Main application integration layout                      |
-| `AliasForm.test.tsx`         | 13    | Form validation, library picker, textarea, edit mode     |
-| `AliasList.test.tsx`         | 6     | Table rendering, sort/filter logic, scope interactions   |
+| Suite                             | Tests | Covers                                                   |
+| --------------------------------- | ----- | -------------------------------------------------------- |
+| `types.test.ts`                   | 6     | TypeScript interface verification                        |
+| `suggestion-service.test.ts`      | 18    | All 5 suggestion schemes, conflict filtering, edge cases |
+| `gitalias-library.test.ts`        | 14    | Library data integrity, search, category filtering       |
+| `App.test.tsx`                    | 2     | Main application integration layout                      |
+| `AliasForm.test.tsx`              | 13    | Form validation, library picker, textarea, edit mode     |
+| `AliasList.test.tsx`              | 6     | Table rendering, sort/filter logic, scope interactions   |
+| `useGroups.test.ts`               | 7     | Group CRUD, active filter, non-Tauri fallbacks           |
+| _+ 15 more hook/component suites_ | 108   | Hooks, components, error boundary, updater               |
+| **Rust unit tests**               | 55    | git_service, settings, repos, groups, ranking parsers    |
 
 ---
 
 ## 🏗 Architecture
 
-```
-gam/
-├── src-tauri/               # Tauri backend (Rust)
-│   ├── src/
-│   │   ├── lib.rs           # App entry point, plugin registration
-│   │   ├── commands.rs      # 12 Tauri command handlers
-│   │   ├── git_service.rs   # Git config CLI wrapper (CRUD)
-│   │   ├── file_service.rs  # JSON import/export
-│   │   ├── ranking_service.rs # Usage scoring & ranking
-│   │   └── known_repos_service.rs # Repo path persistence
-│   ├── Cargo.toml           # Rust dependencies
-│   └── tauri.conf.json      # App configuration
-├── src/                     # React frontend
-│   ├── App.tsx              # Main app shell
-│   ├── tauri-bridge.ts      # Tauri invoke API bridge
-│   ├── index.css            # Design system (notebook theme, micro-animations)
-│   ├── components/
-│   │   ├── AliasList.tsx    # Sortable table (A-Z / Rank modes)
-│   │   ├── AliasForm.tsx    # Create/edit with suggestion chips & library picker
-│   │   ├── AliasLibraryPicker.tsx # Browse & search 270+ predefined aliases
-│   │   ├── SuggestionChips.tsx # Clickable alias name suggestions
-│   │   ├── SearchBar.tsx    # Instant search
-│   │   ├── Toolbar.tsx      # Scope toggle & actions
-│   │   ├── ConfirmDialog.tsx # Deletion confirmation
-│   │   ├── StatusBar.tsx    # Footer status
-│   │   └── Toast.tsx        # Notifications
-│   ├── services/
-│   │   ├── suggestion-service.ts  # Alias name generation
-│   │   └── gitalias-library.ts    # 270+ predefined aliases from GitAlias
-│   ├── hooks/               # React hooks
-│   └── types/               # Shared TypeScript types
-└── tests/                   # Unit tests (Vitest)
-```
+See [CODEBASE.md](./CODEBASE.md) for full architecture details including IPC commands, Rust services, frontend hooks, theme system, app data paths, and file dependency map.
 
-### How It Works
+**Key design decisions:**
 
-GAM delegates all Git operations to the `git config` CLI rather than manually parsing `.gitconfig` files. This approach is:
-
-- **Reliable** — Git handles all parsing edge cases (includes, conditionals)
-- **Safe** — Uses `std::process::Command` in Rust to prevent command injection
-- **Lightweight** — Tauri uses the OS webview (~3-6 MB) instead of bundling Chromium (~150 MB)
-
-The suggestion service runs in the frontend. The ranking and git services run in the Rust backend with secure Tauri command bridging.
+- **CLI-first** — All Git operations delegate to `git config` CLI rather than parsing `.gitconfig` files
+- **Lightweight** — Tauri uses the OS webview (~3–6 MB) instead of bundling Chromium (~150 MB)
+- **Secure** — Uses `std::process::Command` in Rust to prevent command injection
+- **Cross-platform** — Supports zsh, bash (plain + timestamped), Fish, and PowerShell shell histories
 
 ---
 
 ## 📚 Documentation
 
-| Document                                   | Description                                            |
-| ------------------------------------------ | ------------------------------------------------------ |
-| 📖 [User Manual](./MANUAL.md)              | Full walkthrough of every feature                      |
-| 🚀 [Releasing](./RELEASING.md)             | Build scripts, CI/CD pipeline, and release checklist   |
-| 🤝 [Contributing](./CONTRIBUTING.md)       | How to contribute, coding standards, and PR guidelines |
-| 📜 [Code of Conduct](./CODE_OF_CONDUCT.md) | Community expectations                                 |
+| Document                                   | Description                                             |
+| ------------------------------------------ | ------------------------------------------------------- |
+| 📖 [User Manual](./MANUAL.md)              | Full walkthrough of every feature                       |
+| 🧠 [Codebase](./CODEBASE.md)               | Architecture, IPC commands, services, file dependencies |
+| 🚀 [Releasing](./RELEASING.md)             | Build scripts, CI/CD pipeline, and release checklist    |
+| 🤝 [Contributing](./CONTRIBUTING.md)       | How to contribute, coding standards, and PR guidelines  |
+| 📜 [Code of Conduct](./CODE_OF_CONDUCT.md) | Community expectations                                  |
 
 ---
 

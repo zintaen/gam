@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { I_GitAlias } from '../types';
+import type { I_AliasGroup, I_GitAlias } from '../types';
 
 interface I_AliasListProps {
     aliases: I_GitAlias[];
@@ -11,6 +11,9 @@ interface I_AliasListProps {
     onEdit: (alias: I_GitAlias) => void;
     onDelete: (alias: I_GitAlias) => void;
     onOpenLocalFolder: (path: string) => void;
+    groups?: I_AliasGroup[];
+    assignments?: Record<string, string[]>;
+    onSetAliasGroups?: (aliasName: string, groupIds: string[]) => void;
 }
 
 type T_SortKey = 'name' | 'command' | 'scope' | 'rank';
@@ -23,6 +26,9 @@ interface I_AliasListItemProps {
     onEdit: (alias: I_GitAlias) => void;
     onDelete: (alias: I_GitAlias) => void;
     onOpenLocalFolder: (path: string) => void;
+    groups?: I_AliasGroup[];
+    aliasGroupIds?: string[];
+    onSetAliasGroups?: (aliasName: string, groupIds: string[]) => void;
 }
 
 const AliasListItem = React.memo(({
@@ -32,8 +38,25 @@ const AliasListItem = React.memo(({
     onEdit,
     onDelete,
     onOpenLocalFolder,
+    groups = [],
+    aliasGroupIds = [],
+    onSetAliasGroups,
 }: I_AliasListItemProps) => {
     const isGlobal = alias.scope === 'global';
+    const [showGroupMenu, setShowGroupMenu] = useState(false);
+
+    const toggleGroup = useCallback((groupId: string) => {
+        if (!onSetAliasGroups)
+            return;
+        const current = [...aliasGroupIds];
+        const idx = current.indexOf(groupId);
+        if (idx >= 0)
+            current.splice(idx, 1);
+        else current.push(groupId);
+        onSetAliasGroups(alias.name, current);
+    }, [alias.name, aliasGroupIds, onSetAliasGroups]);
+
+    const aliasGroups = groups.filter(g => aliasGroupIds.includes(g.id));
 
     return (
         <tr
@@ -47,12 +70,22 @@ const AliasListItem = React.memo(({
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = ''; }}
         >
             <td>
-                <span
-                    className="font-mono font-bold text-[15px] px-2 py-0.5 inline-block"
-                    style={{ color: isGlobal ? 'var(--color-badge-global-text)' : 'var(--color-badge-local-text)' }}
-                >
-                    {alias.name}
-                </span>
+                <div className="flex items-center gap-1.5">
+                    <span
+                        className="font-mono font-bold text-[15px] px-2 py-0.5 inline-block"
+                        style={{ color: isGlobal ? 'var(--color-badge-global-text)' : 'var(--color-badge-local-text)' }}
+                    >
+                        {alias.name}
+                    </span>
+                    {aliasGroups.map(g => (
+                        <span
+                            key={g.id}
+                            className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: g.color }}
+                            title={g.name}
+                        />
+                    ))}
+                </div>
             </td>
             <td className="text-center">
                 <span
@@ -91,7 +124,7 @@ const AliasListItem = React.memo(({
                 </span>
             </td>
             <td>
-                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-2 group-hover:translate-x-0">
+                <div className="flex gap-1.5 items-center">
                     <button className="bg-transparent border-none text-base cursor-pointer hover:scale-125 transition-all duration-200 p-0.5" onClick={() => onEdit(alias)} title="Edit alias" aria-label={`Edit alias ${alias.name}`}>
                         ✏️
                     </button>
@@ -104,6 +137,61 @@ const AliasListItem = React.memo(({
                     >
                         🗑
                     </button>
+                    <div className="relative">
+                        <button
+                            className="bg-transparent border-none text-sm cursor-pointer hover:scale-125 transition-all duration-200 p-0.5"
+                            onClick={() => setShowGroupMenu(v => !v)}
+                            title="Assign to groups"
+                            aria-label={`Assign ${alias.name} to groups`}
+                        >
+                            🏷️
+                        </button>
+                        {showGroupMenu && (
+                            <div
+                                className="absolute right-0 top-full mt-1 z-50 rounded-lg shadow-lg border py-1 min-w-[160px]"
+                                style={{
+                                    backgroundColor: 'var(--color-surface)',
+                                    borderColor: 'var(--color-border)',
+                                }}
+                            >
+                                {groups.length === 0
+                                    ? (
+                                            <div className="px-3 py-2 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                                No groups yet. Create one in the sidebar.
+                                            </div>
+                                        )
+                                    : (
+                                            groups.map(g => (
+                                                <label
+                                                    key={g.id}
+                                                    className="flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer hover:bg-[var(--color-surface-hover)] transition-colors"
+                                                    style={{ color: 'var(--color-text)' }}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={aliasGroupIds.includes(g.id)}
+                                                        onChange={() => toggleGroup(g.id)}
+                                                        className="accent-current"
+                                                    />
+                                                    <span
+                                                        className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                                        style={{ backgroundColor: g.color }}
+                                                    />
+                                                    <span className="truncate">{g.name}</span>
+                                                </label>
+                                            ))
+                                        )}
+                                <button
+                                    type="button"
+                                    className="w-full text-left px-3 py-1 text-xs cursor-pointer bg-transparent border-none border-t mt-1 pt-1.5"
+                                    style={{ color: 'var(--color-text-muted)', borderTopColor: 'var(--color-border)' }}
+                                    onClick={() => setShowGroupMenu(false)}
+                                >
+                                    Done
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </td>
         </tr>
@@ -118,6 +206,9 @@ export function AliasList({
     onEdit,
     onDelete,
     onOpenLocalFolder,
+    groups = [],
+    assignments = {},
+    onSetAliasGroups,
 }: I_AliasListProps) {
     const [sortKey, setSortKey] = useState<T_SortKey>('name');
     const [sortDir, setSortDir] = useState<T_SortDir>('asc');
@@ -246,7 +337,7 @@ export function AliasList({
                             Scope
                             {sortIcon('scope')}
                         </th>
-                        <th className="px-5 py-3 font-bold text-[11px] uppercase tracking-wider w-20" style={{ color: 'var(--color-text-muted)' }}>Actions</th>
+                        <th className="px-5 py-3 font-bold text-[11px] uppercase tracking-wider w-28" style={{ color: 'var(--color-text-muted)' }}>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -304,6 +395,9 @@ export function AliasList({
                                                     onEdit={onEdit}
                                                     onDelete={onDelete}
                                                     onOpenLocalFolder={onOpenLocalFolder}
+                                                    groups={groups}
+                                                    aliasGroupIds={assignments[alias.name]}
+                                                    onSetAliasGroups={onSetAliasGroups}
                                                 />
                                             );
                                         })

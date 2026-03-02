@@ -3,12 +3,14 @@ use std::sync::RwLock;
 mod commands;
 mod file_service;
 mod git_service;
+mod group_service;
 mod known_repos_service;
 mod ranking_service;
 mod settings_service;
 
 pub use commands::*;
 pub use git_service::GitService;
+pub use group_service::GroupService;
 pub use known_repos_service::KnownReposService;
 pub use ranking_service::RankingService;
 pub use settings_service::SettingsService;
@@ -17,10 +19,33 @@ pub use settings_service::SettingsService;
 pub struct AppState {
     pub git_service: RwLock<GitService>,
     pub settings_service: RwLock<SettingsService>,
+    pub group_service: RwLock<GroupService>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let start = std::time::Instant::now();
+
+    // Log panics to crash.log in the app data directory
+    let crash_log_path = dirs::data_dir()
+        .unwrap_or_else(|| std::path::PathBuf::from("."))
+        .join("com.github.zintaen.gam")
+        .join("crash.log");
+
+    std::panic::set_hook(Box::new(move |info| {
+        let timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let msg = format!("[{}] PANIC: {}\n", timestamp, info);
+        let _ = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&crash_log_path)
+            .and_then(|mut f| std::io::Write::write_all(&mut f, msg.as_bytes()));
+        eprintln!("{}", msg);
+    }));
+
     // Evaluate CLI argument for folder
     let local_path: Option<String> = {
         let args: Vec<String> = std::env::args().skip(1).collect();
@@ -45,13 +70,14 @@ pub fn run() {
     }
 
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(move |app| {
             #[cfg(desktop)]
             {
                 app.handle()
                     .plugin(tauri_plugin_updater::Builder::new().build())?;
                 app.handle().plugin(tauri_plugin_process::init())?;
             }
+            eprintln!("[GAM] Startup completed in {:?}", start.elapsed());
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
@@ -60,6 +86,7 @@ pub fn run() {
         .manage(AppState {
             git_service: RwLock::new(git_service),
             settings_service: RwLock::new(SettingsService::new()),
+            group_service: RwLock::new(GroupService::new()),
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_aliases,
@@ -76,6 +103,13 @@ pub fn run() {
             commands::open_external,
             commands::get_theme,
             commands::set_theme,
+            commands::get_groups,
+            commands::create_group,
+            commands::rename_group,
+            commands::set_group_color,
+            commands::delete_group,
+            commands::set_alias_groups,
+            commands::get_all_group_assignments,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

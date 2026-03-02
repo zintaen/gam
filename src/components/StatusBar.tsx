@@ -5,12 +5,14 @@ interface I_StatusBarProps {
     filteredCount: number;
     scope: string;
     isSearching: boolean;
+    activeGroupName?: string;
     onOpenExternal: (url: string) => void;
 }
 
-export const StatusBar = React.memo(({ totalAliases, filteredCount, scope, isSearching, onOpenExternal }: I_StatusBarProps) => {
+export const StatusBar = React.memo(({ totalAliases, filteredCount, scope, isSearching, activeGroupName, onOpenExternal }: I_StatusBarProps) => {
     const scopeLabel = scope === 'all' ? 'All scopes' : scope === 'global' ? 'Global' : 'Local';
-    const countLabel = isSearching
+    const isFiltering = isSearching || !!activeGroupName;
+    const countLabel = isFiltering
         ? `${filteredCount} of ${totalAliases}`
         : `${totalAliases} ${totalAliases === 1 ? 'alias' : 'aliases'}`;
 
@@ -19,6 +21,12 @@ export const StatusBar = React.memo(({ totalAliases, filteredCount, scope, isSea
             <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full animate-pulse-glow" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-success)' }} />
                 <span>{scopeLabel}</span>
+                {activeGroupName && (
+                    <>
+                        <span style={{ color: 'var(--color-text-muted)' }}>·</span>
+                        <span style={{ color: 'var(--color-focus)' }}>{activeGroupName}</span>
+                    </>
+                )}
                 <span style={{ color: 'var(--color-text-muted)' }}>·</span>
                 <span>{countLabel}</span>
             </div>

@@ -4,7 +4,7 @@
  */
 import { invoke } from '@tauri-apps/api/core';
 
-import type { I_AppAPI, I_GitAlias, I_IpcResult, I_ValidationResult } from './types';
+import type { I_AliasGroup, I_AppAPI, I_GitAlias, I_IpcResult, I_ValidationResult } from './types';
 
 export const tauriAPI: I_AppAPI = {
     getAliases: scope => invoke<I_IpcResult<I_GitAlias[]>>('get_aliases', { scope }),
@@ -43,4 +43,25 @@ export const tauriAPI: I_AppAPI = {
 
     setTheme: themeId =>
         invoke<I_IpcResult>('set_theme', { themeId }),
+
+    // Groups
+    getGroups: () => invoke<I_IpcResult<I_AliasGroup[]>>('get_groups'),
+
+    createGroup: (name, color) =>
+        invoke<I_IpcResult<I_AliasGroup>>('create_group', { name, color }),
+
+    renameGroup: (groupId, newName) =>
+        invoke<I_IpcResult>('rename_group', { groupId, newName }),
+
+    setGroupColor: (groupId, color) =>
+        invoke<I_IpcResult>('set_group_color', { groupId, color }),
+
+    deleteGroup: groupId =>
+        invoke<I_IpcResult>('delete_group', { groupId }),
+
+    setAliasGroups: (aliasName, groupIds) =>
+        invoke<I_IpcResult>('set_alias_groups', { aliasName, groupIds }),
+
+    getAllGroupAssignments: () =>
+        invoke<I_IpcResult<Record<string, string[]>>>('get_all_group_assignments'),
 };
