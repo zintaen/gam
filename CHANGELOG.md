@@ -1,3 +1,8 @@
+## v1.0.6 (2026-03-02)
+
+- ee8115b feat: release process
+- 374dc07 fix: documents
+
 ## v1.0.5 (2026-03-02)
 
 - cecad91 fix: pnpm-lock.json
