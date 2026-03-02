@@ -1,3 +1,7 @@
+## v1.0.4 (2026-03-02)
+
+- 66c3b85 feat: auto update
+
 ## v1.0.3 (2026-03-02)
 
 - 2af5826 fix: releaseDraft to false
