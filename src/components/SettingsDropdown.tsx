@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import type { I_ThemeConfig, T_ThemeId } from '#/types';
 
-import { THEME_REGISTRY } from '#/lib/constants';
+import { APP_VERSION, THEME_REGISTRY } from '#/lib/constants';
 
 interface I_SettingsDropdownProps {
     themeId: T_ThemeId;
@@ -277,7 +277,10 @@ export function SettingsDropdown({
                         <div className="px-4 py-3 flex flex-col gap-2 text-[12px]" style={{ color: 'var(--color-text-secondary)' }}>
                             <div className="flex items-center gap-2">
                                 <span className="font-bold text-[14px]" style={{ color: 'var(--color-text)' }}>GAM</span>
-                                <span className="px-1.5 py-px rounded text-[10px] font-mono" style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-muted)' }}>v1.0.0</span>
+                                <span className="px-1.5 py-px rounded text-[10px] font-mono" style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-muted)' }}>
+                                    v
+                                    {APP_VERSION}
+                                </span>
                             </div>
                             <div style={{ color: 'var(--color-text-muted)' }}>Git Alias Manager</div>
                             <div className="h-px" style={{ backgroundColor: 'var(--color-border)' }} />

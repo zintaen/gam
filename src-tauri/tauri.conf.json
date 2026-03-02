@@ -22,10 +22,11 @@
             }
         ],
         "security": {
-            "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src ipc: http://ipc.localhost"
+            "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src ipc: http://ipc.localhost https://github.com https://objects.githubusercontent.com"
         }
     },
     "bundle": {
+        "createUpdaterArtifacts": true,
         "active": true,
         "targets": "all",
         "icon": [
@@ -39,5 +40,12 @@
             "minimumSystemVersion": "10.13"
         }
     },
-    "plugins": {}
+    "plugins": {
+        "updater": {
+            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEIxMjhFMjVEMUQ1QUYxQzMKUldURDhWb2RYZUlvc2UweGRldEw3S0hJQUpqc0JhZDV1YlVWRGRXbVQ5WGNYRDJKbWNYMjc4UnoK",
+            "endpoints": [
+                "https://github.com/zintaen/gam/releases/latest/download/latest.json"
+            ]
+        }
+    }
 }

@@ -8,3 +8,4 @@ export { StatusBar } from './StatusBar';
 export { SuggestionChips } from './SuggestionChips';
 export { ToastContainer } from './Toast';
 export { Toolbar } from './Toolbar';
+export { UpdateModal } from './UpdateModal';

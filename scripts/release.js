@@ -33,6 +33,20 @@ async function main() {
     const newVersion = pkg.version;
     console.log(`Bumped version to ${newVersion}`);
 
+    // Sync tauri.conf.json version
+    const tauriConfPath = join(process.cwd(), 'src-tauri', 'tauri.conf.json');
+    const tauriConf = JSON.parse(readFileSync(tauriConfPath, 'utf8'));
+    tauriConf.version = newVersion;
+    writeFileSync(tauriConfPath, `${JSON.stringify(tauriConf, null, 4)}\n`);
+    console.log('Synced src-tauri/tauri.conf.json');
+
+    // Sync Cargo.toml version
+    const cargoTomlPath = join(process.cwd(), 'src-tauri', 'Cargo.toml');
+    let cargoToml = readFileSync(cargoTomlPath, 'utf8');
+    cargoToml = cargoToml.replace(/^version = ".*"$/m, `version = "${newVersion}"`);
+    writeFileSync(cargoTomlPath, cargoToml);
+    console.log('Synced src-tauri/Cargo.toml');
+
     // 2. Generate changelog
     console.log('Generating changelog...');
     let lastTag = runSilent('git describe --tags --abbrev=0');
@@ -71,7 +85,7 @@ async function main() {
 
     // 3. Commit and tag
     console.log('Committing version bump and changelog...');
-    run('git add package.json CHANGELOG.md');
+    run('git add package.json CHANGELOG.md src-tauri/tauri.conf.json src-tauri/Cargo.toml');
 
     try {
         runSilent('git add pnpm-lock.yaml');

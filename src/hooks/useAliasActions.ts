@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 
 import type { I_GitAlias } from '#/types';
 
+import { APP_VERSION } from '#/lib/constants';
 import { isTauri, tauriAPI } from '#/lib/tauri';
 
 import type { T_ToastType } from './useToast';
@@ -99,7 +100,7 @@ export function useAliasActions({
     const handleExport = useCallback(async () => {
         if (!isTauri) {
             const data = {
-                version: '1.0.0',
+                version: APP_VERSION,
                 exportedAt: new Date().toISOString(),
                 aliases,
             };

@@ -197,7 +197,6 @@ The suggestion service runs in the frontend. The ranking and git services run in
 | Document                                   | Description                                            |
 | ------------------------------------------ | ------------------------------------------------------ |
 | 📖 [User Manual](./MANUAL.md)              | Full walkthrough of every feature                      |
-| 📋 [Changelog](./CHANGELOG.md)             | Version history and release notes                      |
 | 🚀 [Releasing](./RELEASING.md)             | Build scripts, CI/CD pipeline, and release checklist   |
 | 🤝 [Contributing](./CONTRIBUTING.md)       | How to contribute, coding standards, and PR guidelines |
 | 📜 [Code of Conduct](./CODE_OF_CONDUCT.md) | Community expectations                                 |
@@ -212,7 +211,7 @@ If GAM saves you time and brainpower, give it a star on [GitHub](https://github.
 
 Or scan the QR Code:
 
-<img src="screenshots/buy-me-a-coffee.png" alt="Buy Me A Banana QR" width="200" style="border-radius: 12px;">
+<img src="docs/screenshots/buy-me-a-coffee.png" alt="Buy Me A Banana QR" width="200" style="border-radius: 12px;">
 
 ---
 

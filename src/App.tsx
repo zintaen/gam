@@ -11,6 +11,7 @@ import { StatusBar } from './components/StatusBar';
 import { ThemeSettingsModal } from './components/ThemeSettingsModal';
 import { ToastContainer } from './components/Toast';
 import { Toolbar } from './components/Toolbar';
+import { UpdateModal } from './components/UpdateModal';
 import { useAliasActions } from './hooks/useAliasActions';
 import { useAliases } from './hooks/useAliases';
 import { useDragDrop } from './hooks/useDragDrop';
@@ -18,6 +19,8 @@ import { useLocalPath } from './hooks/useLocalPath';
 import { useSearch } from './hooks/useSearch';
 import { useTheme } from './hooks/useTheme';
 import { useToast } from './hooks/useToast';
+import { useUpdater } from './hooks/useUpdater';
+import { APP_VERSION } from './lib/constants';
 import { isTauri, tauriAPI } from './lib/tauri';
 
 export default function App() {
@@ -44,6 +47,17 @@ export default function App() {
     const [showThemeSettings, setShowThemeSettings] = useState(false);
 
     useDragDrop(setLocalPath, fetchAliases, addToast);
+
+    const {
+        updateAvailable,
+        version: updateVersion,
+        changelog,
+        downloading,
+        downloadProgress,
+        error: updateError,
+        startDownload,
+        dismiss: dismissUpdate,
+    } = useUpdater();
 
     const existingNames = useMemo(() => aliases.map(a => a.name), [aliases]);
 
@@ -112,7 +126,8 @@ export default function App() {
                             className="text-[10px] font-normal tracking-normal px-1.5 py-px rounded"
                             style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface-hover)' }}
                         >
-                            v1.0.0
+                            v
+                            {APP_VERSION}
                         </span>
                     </span>
 
@@ -219,6 +234,18 @@ export default function App() {
                         cancelPreview();
                         setShowThemeSettings(false);
                     }}
+                />
+            )}
+
+            {updateAvailable && (
+                <UpdateModal
+                    version={updateVersion}
+                    changelog={changelog}
+                    downloading={downloading}
+                    downloadProgress={downloadProgress}
+                    error={updateError}
+                    onUpdate={startDownload}
+                    onDismiss={dismissUpdate}
                 />
             )}
 

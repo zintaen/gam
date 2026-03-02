@@ -27,14 +27,14 @@ function applyTheme(themeId: T_ThemeId) {
 }
 
 export function useTheme() {
-    const [themeId, setThemeIdState] = useState<T_ThemeId>(() => {
+    const [themeIdState, setThemeIdState] = useState<T_ThemeId>(() => {
         const stored = localStorage.getItem(THEME_STORAGE_KEY);
 
         return parseThemeId(stored);
     });
 
     const [isPreview, setIsPreview] = useState(false);
-    const committedRef = useRef<T_ThemeId>(themeId);
+    const committedRef = useRef<T_ThemeId>(themeIdState);
 
     // Load theme from Tauri backend on mount
     useEffect(() => {
@@ -55,13 +55,13 @@ export function useTheme() {
 
     // Apply theme whenever themeId changes
     useEffect(() => {
-        applyTheme(themeId);
+        applyTheme(themeIdState);
 
         // Only persist when it's not a preview
         if (!isPreview) {
-            localStorage.setItem(THEME_STORAGE_KEY, themeId);
+            localStorage.setItem(THEME_STORAGE_KEY, themeIdState);
         }
-    }, [themeId, isPreview]);
+    }, [themeIdState, isPreview]);
 
     /** Set theme permanently (persists to backend + localStorage) */
     const setThemeId = useCallback((id: T_ThemeId) => {
@@ -89,10 +89,10 @@ export function useTheme() {
         setIsPreview(false);
     }, []);
 
-    const themeConfig: I_ThemeConfig = THEME_REGISTRY[themeId] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
+    const themeConfig: I_ThemeConfig = THEME_REGISTRY[themeIdState] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
 
     return {
-        themeId,
+        themeId: themeIdState,
         themeConfig,
         setThemeId,
         previewTheme,

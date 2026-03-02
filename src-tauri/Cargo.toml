@@ -1,6 +1,6 @@
 [package]
 name = "gam"
-version = "1.0.0"
+version = "1.0.3"
 description = "Git Alias Manager"
 authors = [ "zintaen" ]
 edition = "2024"
@@ -27,3 +27,7 @@ tokio = { version = "1", features = [ "full" ] }
 dirs = "6"
 regex-lite = "0.1"
 open = "5"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"

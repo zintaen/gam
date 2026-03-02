@@ -2,7 +2,9 @@
 
 import type { I_ThemeConfig, T_ThemeId } from '#/types';
 
-export const APP_VERSION = '1.0.0';
+declare const __APP_VERSION__: string;
+
+export const APP_VERSION = __APP_VERSION__;
 export const THEME_STORAGE_KEY = 'gam-theme';
 export const TOAST_DURATION_MS = 4000;
 export const SEARCH_DEBOUNCE_MS = 300;
