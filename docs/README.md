@@ -108,7 +108,7 @@ Download the latest release for your platform from the [GitHub Releases](https:/
 ### Homebrew (macOS)
 
 ```bash
-brew install zintaen/tap/gam
+brew install --cask zintaen/tap/gam
 ```
 
 > **Auto-Update:** GAM checks for updates on every launch and lets you update in-place with one click.

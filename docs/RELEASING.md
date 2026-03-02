@@ -144,8 +144,7 @@ The build configuration lives in `src-tauri/tauri.conf.json`. Key settings:
 Once a release is published, macOS users can install via:
 
 ```bash
-brew tap zintaen/tap
-brew install --cask gam
+brew install --cask zintaen/tap/gam
 ```
 
 ---
