@@ -1,3 +1,7 @@
+## v1.0.1 (2026-03-02)
+
+- dc4e3c6 feat: update libs
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
