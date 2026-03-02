@@ -1,3 +1,7 @@
+## v1.0.7 (2026-03-02)
+
+- a2e3375 feat: alias group
+
 ## v1.0.6 (2026-03-02)
 
 - ee8115b feat: release process
