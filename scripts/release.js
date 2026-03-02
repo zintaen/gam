@@ -1,6 +1,6 @@
-const { execSync } = require('node:child_process');
-const { readFileSync, writeFileSync, existsSync } = require('node:fs');
-const { join } = require('node:path');
+import { execSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 function run(command) {
     console.log(`> ${command}`);
