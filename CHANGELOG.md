@@ -1,3 +1,7 @@
+## v1.0.5 (2026-03-02)
+
+- cecad91 fix: pnpm-lock.json
+
 ## v1.0.4 (2026-03-02)
 
 - 66c3b85 feat: auto update
