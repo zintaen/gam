@@ -1,7 +1,7 @@
 {
     "name": "gam",
     "type": "module",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "description": "Git Alias Manager — A professional desktop GUI for managing Git aliases",
     "author": "zintaen <zintaen@example.com>",
     "license": "MIT",

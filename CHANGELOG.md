@@ -1,3 +1,7 @@
+## v1.0.8 (2026-03-02)
+
+- b2e0bb4 feat: enhance release changelog
+
 ## v1.0.7 (2026-03-02)
 
 - a2e3375 feat: alias group
