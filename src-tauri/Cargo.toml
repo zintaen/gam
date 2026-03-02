@@ -1,6 +1,6 @@
 [package]
 name = "gam"
-version = "1.0.8"
+version = "1.0.9"
 description = "Git Alias Manager"
 authors = [ "zintaen" ]
 edition = "2024"

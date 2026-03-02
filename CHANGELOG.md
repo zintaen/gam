@@ -1,3 +1,7 @@
+## v1.0.9 (2026-03-02)
+
+- aef9def feat: refactor
+
 ## v1.0.8 (2026-03-02)
 
 - b2e0bb4 feat: enhance release changelog
