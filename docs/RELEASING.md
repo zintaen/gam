@@ -10,6 +10,39 @@ This document describes how to build and release GAM as a desktop application.
 - [Git](https://git-scm.com/) installed and on `PATH`
 - GitHub repository push access (for tagging and CI)
 
+## Signing Setup (One-Time)
+
+Tauri requires signed update artifacts. Generate a keypair once:
+
+```bash
+pnpm tauri signer generate -w ~/.tauri/gam.key
+```
+
+This outputs:
+
+- **Private key** → `~/.tauri/gam.key` (never share this)
+- **Public key** → printed to stdout (already in `tauri.conf.json`)
+
+### GitHub Secrets (for CI)
+
+Add these secrets in **Settings → Secrets → Actions**:
+
+| Secret                               | Value                                |
+| ------------------------------------ | ------------------------------------ |
+| `TAURI_SIGNING_PRIVATE_KEY`          | Contents of `~/.tauri/gam.key`       |
+| `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Password you chose during generation |
+
+### Local `.env` (for local builds)
+
+Add the same values to `.env` (gitignored):
+
+```env
+TAURI_SIGNING_PRIVATE_KEY=<contents of ~/.tauri/gam.key>
+TAURI_SIGNING_PRIVATE_KEY_PASSWORD=<your password>
+```
+
+The `pnpm build` script uses `dotenv-cli` to load `.env` automatically.
+
 ## Build Scripts
 
 | Command      | Description                                    |
@@ -28,9 +61,12 @@ To build the app locally for testing:
 # Install dependencies
 pnpm install
 
-# Build for your current platform
+# Build for your current platform (reads signing keys from .env)
 pnpm build
 ```
+
+> [!NOTE]
+> `pnpm build` uses `dotenv-cli` to load `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` from `.env`. Without these, the build will fail at the signing step.
 
 The built artifacts are output to `src-tauri/target/release/bundle/`:
 
@@ -69,19 +105,21 @@ The `scripts/release.js` script does the following automatically:
 
 Pushing a `v*` tag triggers the `.github/workflows/release.yml` workflow:
 
-1. **Builds** the Tauri app on all platforms (`macos-latest` arm64+x86_64, `ubuntu-22.04`, `windows-latest`) using `tauri-apps/tauri-action`
-2. **Publishes** the artifacts as a GitHub Release draft (`.dmg`, `.AppImage`, `.msi`, `.exe`)
-3. **Updates Homebrew** — Bumps the `gam` cask in the `zintaen/homebrew-tap` repository
+1. **Builds** the Tauri app on all platforms (`macos-latest` arm64+x86_64, `ubuntu-24.04`, `windows-latest`) using `tauri-apps/tauri-action`
+2. **Signs** the update artifacts using `TAURI_SIGNING_PRIVATE_KEY` from GitHub Secrets
+3. **Publishes** the artifacts as a GitHub Release (`.dmg`, `.AppImage`, `.msi`, `.exe`, `latest.json`)
+4. **Updates Homebrew** — Bumps the `gam` cask in the `zintaen/homebrew-tap` repository
 
 ### Release artifacts
 
 After CI completes, the GitHub Release page will contain:
 
-| Platform | Files               |
-| -------- | ------------------- |
-| macOS    | `.dmg`              |
-| Windows  | `.msi`, `.exe`      |
-| Linux    | `.AppImage`, `.deb` |
+| Platform | Files                                |
+| -------- | ------------------------------------ |
+| macOS    | `.dmg`, `.tar.gz`, `.tar.gz.sig`     |
+| Windows  | `.msi`, `.nsis.zip`, `.nsis.zip.sig` |
+| Linux    | `.AppImage`, `.AppImage.sig`         |
+| Updater  | `latest.json` (auto-update manifest) |
 
 ## Manual / Pre-release Checklist
 

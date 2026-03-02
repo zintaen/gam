@@ -92,6 +92,29 @@ Suggestions automatically filter out names that conflict with your existing alia
 
 ---
 
+## 📥 Download
+
+### Direct Download
+
+Download the latest release for your platform from the [GitHub Releases](https://github.com/zintaen/gam/releases/latest) page:
+
+| Platform              | File                       |
+| --------------------- | -------------------------- |
+| macOS (Apple Silicon) | `GAM_x.x.x_aarch64.dmg`    |
+| macOS (Intel)         | `GAM_x.x.x_x64.dmg`        |
+| Windows               | `GAM_x.x.x_x64-setup.exe`  |
+| Linux                 | `GAM_x.x.x_amd64.AppImage` |
+
+### Homebrew (macOS)
+
+```bash
+brew install zintaen/tap/gam
+```
+
+> **Auto-Update:** GAM checks for updates on every launch and lets you update in-place with one click.
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -211,7 +234,7 @@ If GAM saves you time and brainpower, give it a star on [GitHub](https://github.
 
 Or scan the QR Code:
 
-<img src="docs/screenshots/buy-me-a-coffee.png" alt="Buy Me A Banana QR" width="200" style="border-radius: 12px;">
+<img src="screenshots/buy-me-a-coffee.png" alt="Buy Me A Banana QR" width="200" style="border-radius: 12px;">
 
 ---
 
