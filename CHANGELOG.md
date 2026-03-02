@@ -1,3 +1,7 @@
+## v1.0.3 (2026-03-02)
+
+- 2af5826 fix: releaseDraft to false
+
 ## v1.0.2 (2026-03-02)
 
 - 09e8b9b chore(release): bump version to v1.0.1
