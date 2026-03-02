@@ -1102,7 +1102,7 @@ dependencies = [
 
 [[package]]
 name = "gam"
-version = "1.0.6"
+version = "1.0.7"
 dependencies = [
  "dirs",
  "open",

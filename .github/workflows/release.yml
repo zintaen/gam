@@ -6,6 +6,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: read
+
 jobs:
   release:
     permissions:
@@ -16,18 +19,24 @@ jobs:
         include:
           - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin'
+            rust_target: 'aarch64-apple-darwin'
           - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
+            rust_target: 'x86_64-apple-darwin'
           - platform: 'ubuntu-24.04'
             args: ''
+            rust_target: ''
           - platform: 'windows-latest'
             args: ''
+            rust_target: ''
 
     runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        with:
+          fetch-depth: 0
 
       - name: Install dependencies (Ubuntu only)
         if: matrix.platform == 'ubuntu-24.04'
@@ -38,10 +47,10 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.rust_target }}
 
       - name: Rust cache
-        uses: swatinem/rust-cache@v2
+        uses: swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5  # v2.8.2
         with:
           workspaces: './src-tauri -> target'
 
@@ -59,8 +68,20 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install
 
+      - name: Extract version
+        id: version
+        run: echo "number=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@a34a8009a9588bb86b02a873cf592440e96a5da8  # v6.1.1
+        with:
+          configuration: ".github/changelog-config.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and publish
-        uses: tauri-apps/tauri-action@v0
+        uses: tauri-apps/tauri-action@73fb865345c54760d875b94642314f8c0c894afa  # v0.6.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -68,7 +89,34 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'GAM ${{ github.ref_name }}'
-          releaseBody: 'See the assets to download and install this version.'
+          releaseBody: |
+            ### 📥 Download
+
+            | Platform | Architecture | File |
+            |----------|-------------|------|
+            | 🍎 macOS | Apple Silicon (M1/M2/M3/M4) | `GAM_${{ steps.version.outputs.number }}_aarch64.dmg` |
+            | 🍎 macOS | Intel | `GAM_${{ steps.version.outputs.number }}_x64.dmg` |
+            | 🪟 Windows | x64 (Installer) | `GAM_${{ steps.version.outputs.number }}_x64-setup.exe` |
+            | 🪟 Windows | x64 (MSI) | `GAM_${{ steps.version.outputs.number }}_x64_en-US.msi` |
+            | 🐧 Linux | x64 (Debian/Ubuntu) | `GAM_${{ steps.version.outputs.number }}_amd64.deb` |
+            | 🐧 Linux | x64 (Fedora/RHEL) | `GAM-${{ steps.version.outputs.number }}-1.x86_64.rpm` |
+            | 🐧 Linux | x64 (AppImage) | `GAM_${{ steps.version.outputs.number }}_amd64.AppImage` |
+
+            > **Note:** `.sig` and `.tar.gz` files are used for auto-update verification. You can safely ignore them.
+
+            ---
+
+            ### 📝 What's Changed
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ---
+
+            ### 🍺 macOS (Homebrew)
+
+            ```bash
+            brew install --cask zintaen/tap/gam
+            ```
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
@@ -77,6 +125,8 @@ jobs:
     name: 🍺 Bump Homebrew Cask
     needs: release
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Extract version
         id: version
@@ -88,12 +138,22 @@ jobs:
           repository: zintaen/homebrew-tap
           token: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
 
+      - name: Wait for release assets to propagate
+        run: sleep 30
+
       - name: Compute SHA256 of DMG
         id: sha
         run: |
           DMG_URL="https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_aarch64.dmg"
           echo "Downloading ${DMG_URL}..."
-          SHA=$(curl -sL "${DMG_URL}" | sha256sum | awk '{print $1}')
+          SHA=$(curl -sL --fail --retry 5 --retry-delay 10 "${DMG_URL}" | sha256sum | awk '{print $1}')
+
+          EMPTY_HASH="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          if [ -z "${SHA}" ] || [ "${SHA}" = "${EMPTY_HASH}" ]; then
+            echo "::error::SHA256 is empty or matches zero-length file. Asset may not be available."
+            exit 1
+          fi
+
           echo "sha256=${SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Update Cask file
@@ -115,4 +175,3 @@ jobs:
           git add Casks/gam.rb
           git commit -m "brew: update gam to ${{ github.ref_name }}"
           git push
-
