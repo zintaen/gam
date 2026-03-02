@@ -76,12 +76,17 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
+      - name: Extract version
+        id: version
+        run: echo "number=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
       - name: Update Homebrew tag
         uses: mislav/bump-homebrew-formula-action@v3
         with:
           formula-name: gam
           homebrew-tap: zintaen/homebrew-tap
-          download-url: https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ github.ref_name }}_aarch64.dmg
+          tag-name: ${{ github.ref_name }}
+          download-url: https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_aarch64.dmg
           commit-message: "brew: update gam to ${{ github.ref_name }}"
         env:
           COMMITTER_TOKEN: ${{ secrets.HOMEBREW_GITHUB_TOKEN }}
