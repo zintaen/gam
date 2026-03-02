@@ -47,6 +47,10 @@ async function main() {
     writeFileSync(cargoTomlPath, cargoToml);
     console.log('Synced src-tauri/Cargo.toml');
 
+    // Regenerate Cargo.lock to reflect the new version
+    run('cargo generate-lockfile --manifest-path src-tauri/Cargo.toml');
+    console.log('Regenerated src-tauri/Cargo.lock');
+
     // 2. Generate changelog
     console.log('Generating changelog...');
     let lastTag = runSilent('git describe --tags --abbrev=0');
@@ -85,7 +89,7 @@ async function main() {
 
     // 3. Commit and tag
     console.log('Committing version bump and changelog...');
-    run('git add package.json CHANGELOG.md src-tauri/tauri.conf.json src-tauri/Cargo.toml');
+    run('git add package.json CHANGELOG.md src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock');
 
     try {
         runSilent('git add pnpm-lock.yaml');

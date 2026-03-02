@@ -5,5 +5,4 @@ release
 coverage
 .DS_Store
 package-lock.json
-.simple-git-hooks.json
 .env

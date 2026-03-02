@@ -40,7 +40,7 @@ impl<T: Serialize> IpcResult<T> {
 
 #[tauri::command]
 pub fn get_aliases(state: State<'_, AppState>, scope: String) -> IpcResult<Vec<GitAlias>> {
-    let mut git = state.git_service.write().unwrap();
+    let mut git = state.git_service.write().unwrap_or_else(|e| e.into_inner());
     match git.get_aliases(&scope) {
         Ok(aliases) => IpcResult::ok(aliases),
         Err(e) => IpcResult::err(e),
@@ -55,7 +55,7 @@ pub fn add_alias(
     scope: String,
     local_path: Option<String>,
 ) -> IpcResult<bool> {
-    let mut git = state.git_service.write().unwrap();
+    let mut git = state.git_service.write().unwrap_or_else(|e| e.into_inner());
     match git.add_alias(&name, &command, &scope, local_path.as_deref()) {
         Ok(()) => IpcResult::ok(true),
         Err(e) => IpcResult::err(e),
@@ -71,7 +71,7 @@ pub fn update_alias(
     scope: String,
     local_path: Option<String>,
 ) -> IpcResult<bool> {
-    let mut git = state.git_service.write().unwrap();
+    let mut git = state.git_service.write().unwrap_or_else(|e| e.into_inner());
     match git.update_alias(&old_name, &name, &command, &scope, local_path.as_deref()) {
         Ok(()) => IpcResult::ok(true),
         Err(e) => IpcResult::err(e),
@@ -85,7 +85,7 @@ pub fn delete_alias(
     scope: String,
     local_path: Option<String>,
 ) -> IpcResult<bool> {
-    let mut git = state.git_service.write().unwrap();
+    let mut git = state.git_service.write().unwrap_or_else(|e| e.into_inner());
     match git.delete_alias(&name, &scope, local_path.as_deref()) {
         Ok(()) => IpcResult::ok(true),
         Err(e) => IpcResult::err(e),
@@ -99,7 +99,7 @@ pub fn validate_command(
     state: State<'_, AppState>,
     command: String,
 ) -> IpcResult<ValidationResult> {
-    let git = state.git_service.read().unwrap();
+    let git = state.git_service.read().unwrap_or_else(|e| e.into_inner());
     IpcResult::ok(git.validate_command(&command))
 }
 
@@ -121,12 +121,12 @@ pub async fn select_folder(
     match file_path {
         Some(path) => {
             let path_str = path.into_path().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
-            let mut git = state.git_service.write().unwrap();
+            let mut git = state.git_service.write().unwrap_or_else(|e| e.into_inner());
             git.set_local_path(Some(path_str.clone()));
             Ok(IpcResult::ok(path_str))
         }
         None => {
-            let git = state.git_service.read().unwrap();
+            let git = state.git_service.read().unwrap_or_else(|e| e.into_inner());
             let current = git.get_local_path().unwrap_or_default();
             Ok(IpcResult::ok(current))
         }
@@ -135,7 +135,7 @@ pub async fn select_folder(
 
 #[tauri::command]
 pub fn get_local_path(state: State<'_, AppState>) -> IpcResult<String> {
-    let git = state.git_service.read().unwrap();
+    let git = state.git_service.read().unwrap_or_else(|e| e.into_inner());
     IpcResult::ok(git.get_local_path().unwrap_or_default())
 }
 
@@ -147,7 +147,7 @@ pub fn set_local_path(
     if !path.is_empty() && !Path::new(&path).exists() {
         return IpcResult::err(format!("Directory does not exist: {}", path));
     }
-    let mut git = state.git_service.write().unwrap();
+    let mut git = state.git_service.write().unwrap_or_else(|e| e.into_inner());
     git.set_local_path(if path.is_empty() { None } else { Some(path.clone()) });
     IpcResult::ok(path)
 }
@@ -178,7 +178,7 @@ pub async fn export_aliases(
     match file_path {
         Some(path) => {
             let path_str = path.into_path().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
-            let group_data = state.group_service.read().unwrap().get_data();
+            let group_data = state.group_service.read().unwrap_or_else(|e| e.into_inner()).get_data();
             match FileService::export_aliases(&aliases, &path_str, Some(&group_data)) {
                 Ok(p) => Ok(IpcResult::ok(p)),
                 Err(e) => Ok(IpcResult::err(e)),
@@ -213,7 +213,7 @@ pub async fn import_aliases(
                             groups: export_data.groups.unwrap_or_default(),
                             assignments: export_data.assignments.unwrap_or_default(),
                         };
-                        let mut group_svc = state.group_service.write().unwrap();
+                        let mut group_svc = state.group_service.write().unwrap_or_else(|e| e.into_inner());
                         group_svc.import_data(incoming);
                     }
                 }
@@ -250,7 +250,7 @@ pub fn open_external(url: String) -> IpcResult<bool> {
 
 #[tauri::command]
 pub fn get_theme(state: State<'_, AppState>) -> IpcResult<String> {
-    let settings = state.settings_service.read().unwrap();
+    let settings = state.settings_service.read().unwrap_or_else(|e| e.into_inner());
     let theme = settings
         .get("theme")
         .unwrap_or_else(|| "glassmorphism-dark".to_string());
@@ -259,7 +259,7 @@ pub fn get_theme(state: State<'_, AppState>) -> IpcResult<String> {
 
 #[tauri::command]
 pub fn set_theme(state: State<'_, AppState>, theme_id: String) -> IpcResult<bool> {
-    let mut settings = state.settings_service.write().unwrap();
+    let mut settings = state.settings_service.write().unwrap_or_else(|e| e.into_inner());
     settings.set("theme", &theme_id);
     IpcResult::ok(true)
 }
@@ -268,7 +268,7 @@ pub fn set_theme(state: State<'_, AppState>, theme_id: String) -> IpcResult<bool
 
 #[tauri::command]
 pub fn get_groups(state: State<'_, AppState>) -> IpcResult<Vec<crate::group_service::AliasGroup>> {
-    let group_svc = state.group_service.read().unwrap();
+    let group_svc = state.group_service.read().unwrap_or_else(|e| e.into_inner());
     IpcResult::ok(group_svc.get_groups())
 }
 
@@ -278,7 +278,7 @@ pub fn create_group(
     name: String,
     color: String,
 ) -> IpcResult<crate::group_service::AliasGroup> {
-    let mut group_svc = state.group_service.write().unwrap();
+    let mut group_svc = state.group_service.write().unwrap_or_else(|e| e.into_inner());
     IpcResult::ok(group_svc.create_group(&name, &color))
 }
 
@@ -288,7 +288,7 @@ pub fn rename_group(
     group_id: String,
     new_name: String,
 ) -> IpcResult<bool> {
-    let mut group_svc = state.group_service.write().unwrap();
+    let mut group_svc = state.group_service.write().unwrap_or_else(|e| e.into_inner());
     match group_svc.rename_group(&group_id, &new_name) {
         Ok(()) => IpcResult::ok(true),
         Err(e) => IpcResult::err(e),
@@ -301,7 +301,7 @@ pub fn set_group_color(
     group_id: String,
     color: String,
 ) -> IpcResult<bool> {
-    let mut group_svc = state.group_service.write().unwrap();
+    let mut group_svc = state.group_service.write().unwrap_or_else(|e| e.into_inner());
     match group_svc.set_group_color(&group_id, &color) {
         Ok(()) => IpcResult::ok(true),
         Err(e) => IpcResult::err(e),
@@ -310,7 +310,7 @@ pub fn set_group_color(
 
 #[tauri::command]
 pub fn delete_group(state: State<'_, AppState>, group_id: String) -> IpcResult<bool> {
-    let mut group_svc = state.group_service.write().unwrap();
+    let mut group_svc = state.group_service.write().unwrap_or_else(|e| e.into_inner());
     match group_svc.delete_group(&group_id) {
         Ok(()) => IpcResult::ok(true),
         Err(e) => IpcResult::err(e),
@@ -323,7 +323,7 @@ pub fn set_alias_groups(
     alias_name: String,
     group_ids: Vec<String>,
 ) -> IpcResult<bool> {
-    let mut group_svc = state.group_service.write().unwrap();
+    let mut group_svc = state.group_service.write().unwrap_or_else(|e| e.into_inner());
     group_svc.set_alias_groups(&alias_name, group_ids);
     IpcResult::ok(true)
 }
@@ -332,6 +332,6 @@ pub fn set_alias_groups(
 pub fn get_all_group_assignments(
     state: State<'_, AppState>,
 ) -> IpcResult<std::collections::HashMap<String, Vec<String>>> {
-    let group_svc = state.group_service.read().unwrap();
+    let group_svc = state.group_service.read().unwrap_or_else(|e| e.into_inner());
     IpcResult::ok(group_svc.get_all_assignments())
 }

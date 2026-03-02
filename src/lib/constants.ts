@@ -1,6 +1,6 @@
 /** App-level constants — single source of truth for magic strings and values. */
 
-import type { I_ThemeConfig, T_ThemeId } from '#/types';
+import type { I_ThemeConfig, T_ThemeId, T_ThemeStyle } from '#/types';
 
 declare const __APP_VERSION__: string;
 
@@ -153,4 +153,53 @@ export const THEME_REGISTRY: Record<T_ThemeId, I_ThemeConfig> = {
         label: 'Filigree Light',
         description: 'Gold lacework on cream parchment',
     },
+};
+
+export const THEME_STYLE_ICONS: Record<T_ThemeStyle, string> = {
+    glassmorphism: '◈',
+    sketch: '✎',
+    cybercore: '⌬',
+    baroque: '♛',
+    shabby: '❀',
+    gothic: '⛧',
+    victorian: '⚜',
+    cottagecore: '🌿',
+    pixel: '▦',
+    filigree: '❋',
+};
+
+export const THEME_STYLE_GROUPS: { style: T_ThemeStyle; label: string }[] = [
+    { style: 'glassmorphism', label: 'Glassmorphism' },
+    { style: 'sketch', label: 'Conceptual Sketch' },
+    { style: 'cybercore', label: 'Cybercore' },
+    { style: 'baroque', label: 'Baroque' },
+    { style: 'shabby', label: 'Shabby Chic' },
+    { style: 'gothic', label: 'Gothic' },
+    { style: 'victorian', label: 'Victorian' },
+    { style: 'cottagecore', label: 'Cottagecore' },
+    { style: 'pixel', label: 'Pixel Art' },
+    { style: 'filigree', label: 'Filigree' },
+];
+
+export const THEME_SWATCHES: Record<T_ThemeId, { bg: string; primary: string; surface: string }> = {
+    'glassmorphism-dark': { bg: '#06091a', primary: '#22d3ee', surface: '#111830' },
+    'glassmorphism-light': { bg: '#dde4f0', primary: '#0891b2', surface: '#eef2fc' },
+    'sketch-dark': { bg: '#181610', primary: '#55cc88', surface: '#222018' },
+    'sketch-light': { bg: '#f5f0e2', primary: '#1a6638', surface: '#efe8d6' },
+    'cybercore-dark': { bg: '#050505', primary: '#00ff88', surface: '#0c0c0c' },
+    'cybercore-light': { bg: '#eaf5ee', primary: '#007744', surface: '#ddeee2' },
+    'baroque-dark': { bg: '#080400', primary: '#dab040', surface: '#150e04' },
+    'baroque-light': { bg: '#f8f2e4', primary: '#906820', surface: '#f0e6cc' },
+    'shabby-dark': { bg: '#161012', primary: '#e09090', surface: '#20181c' },
+    'shabby-light': { bg: '#fdf8f4', primary: '#c87878', surface: '#fff9f5' },
+    'gothic-dark': { bg: '#060608', primary: '#cc2828', surface: '#100e12' },
+    'gothic-light': { bg: '#eee8e4', primary: '#7a0e0e', surface: '#e4dcd4' },
+    'victorian-dark': { bg: '#0c0806', primary: '#8b1818', surface: '#181210' },
+    'victorian-light': { bg: '#f6eee0', primary: '#6a1010', surface: '#eee2cc' },
+    'cottagecore-dark': { bg: '#14100c', primary: '#6aa050', surface: '#1e1814' },
+    'cottagecore-light': { bg: '#f6f0e4', primary: '#4a7a30', surface: '#efe6d4' },
+    'pixel-dark': { bg: '#18182a', primary: '#00cc66', surface: '#202040' },
+    'pixel-light': { bg: '#e0e0ee', primary: '#008844', surface: '#eaeaf6' },
+    'filigree-dark': { bg: '#08080e', primary: '#b8a070', surface: '#121218' },
+    'filigree-light': { bg: '#f8f6f0', primary: '#7a6838', surface: '#f0ece2' },
 };

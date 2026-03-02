@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { I_GitAlias } from '#/types';
+import type { I_GitAlias, I_IpcResult } from '#/types';
 
 import { isTauri, tauriAPI } from '#/lib/tauri';
 
@@ -10,8 +10,7 @@ type T_Scope = 'global' | 'local' | 'all';
 const mockAliases: I_GitAlias[] = [];
 
 const mockAPI = {
-    getAliases: async (_scope: T_Scope) => {
-        // Try to use the real API if available
+    getAliases: async (_scope: T_Scope): Promise<I_IpcResult<I_GitAlias[]>> => {
         return { success: true, data: mockAliases };
     },
     addAlias: async (
@@ -19,9 +18,8 @@ const mockAPI = {
         command: string,
         scope: 'global' | 'local',
         localPath?: string,
-    ) => {
+    ): Promise<I_IpcResult> => {
         mockAliases.push({ name, command, scope, localPath });
-
         return { success: true };
     },
     updateAlias: async (
@@ -30,22 +28,18 @@ const mockAPI = {
         command: string,
         scope: 'global' | 'local',
         localPath?: string,
-    ) => {
+    ): Promise<I_IpcResult> => {
         const idx = mockAliases.findIndex(a => a.name === oldName);
-
         if (idx !== -1) {
             mockAliases[idx] = { name, command, scope, localPath };
         }
-
         return { success: true };
     },
-    deleteAlias: async (name: string, _scope: 'global' | 'local', _localPath?: string) => {
+    deleteAlias: async (name: string, _scope: 'global' | 'local', _localPath?: string): Promise<I_IpcResult> => {
         const idx = mockAliases.findIndex(a => a.name === name);
-
         if (idx !== -1) {
             mockAliases.splice(idx, 1);
         }
-
         return { success: true };
     },
 };
@@ -72,7 +66,7 @@ export function useAliases() {
                 setAliases(result.data);
             }
             else if ('success' in result && !result.success) {
-                setError((result as any).error || 'Failed to fetch aliases');
+                setError(result.error || 'Failed to fetch aliases');
                 setAliases([]);
             }
         }
@@ -95,7 +89,7 @@ export function useAliases() {
             const result = await api.addAlias(name, command, aliasScope, localPath);
 
             if ('success' in result && !result.success) {
-                throw new Error((result as any).error || 'Failed to add alias');
+                throw new Error(result.error || 'Failed to add alias');
             }
             await fetchAliases();
         },
@@ -114,7 +108,7 @@ export function useAliases() {
             const result = await api.updateAlias(oldName, name, command, aliasScope, localPath);
 
             if ('success' in result && !result.success) {
-                throw new Error((result as any).error || 'Failed to update alias');
+                throw new Error(result.error || 'Failed to update alias');
             }
 
             await fetchAliases();
@@ -128,7 +122,7 @@ export function useAliases() {
             const result = await api.deleteAlias(name, aliasScope, localPath);
 
             if ('success' in result && !result.success) {
-                throw new Error((result as any).error || 'Failed to delete alias');
+                throw new Error(result.error || 'Failed to delete alias');
             }
 
             await fetchAliases();

@@ -22,7 +22,7 @@ import { useSearch } from './hooks/useSearch';
 import { useTheme } from './hooks/useTheme';
 import { useToast } from './hooks/useToast';
 import { useUpdater } from './hooks/useUpdater';
-import { APP_VERSION } from './lib/constants';
+import { APP_VERSION, THEME_STYLE_ICONS } from './lib/constants';
 import { isTauri, tauriAPI } from './lib/tauri';
 
 export default function App() {
@@ -175,7 +175,7 @@ export default function App() {
 
                     <span className="text-sm font-bold tracking-[2px] uppercase flex items-center gap-1.5" style={{ color: 'var(--color-text)' }}>
                         <span className="px-1" style={{ color: 'var(--color-text)' }}>
-                            {{ glassmorphism: '◈', sketch: '✎', cybercore: '⌬', baroque: '♛', shabby: '❀', gothic: '⛧', victorian: '⚜', cottagecore: '🌿', pixel: '▦', filigree: '❋' }[themeConfig.style] || '◈'}
+                            {THEME_STYLE_ICONS[themeConfig.style] || '◈'}
                             {' '}
                             GAM
                         </span>
@@ -234,7 +234,7 @@ export default function App() {
 
                     <Toolbar
                         scope={scope}
-                        onScopeChange={setScope as any}
+                        onScopeChange={setScope}
                         onAdd={handleAdd}
                         localPath={localPath}
                         onSelectFolder={handleSelectFolder}
@@ -254,7 +254,14 @@ export default function App() {
                             style={{ backgroundColor: 'var(--color-danger-muted)', borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
                         >
                             <span className="font-bold text-lg">✗</span>
-                            <span className="text-sm font-bold">{error}</span>
+                            <span className="text-sm font-bold flex-1">{error}</span>
+                            <button
+                                className="px-3 py-1 text-xs font-bold rounded border cursor-pointer transition-all duration-200 hover:opacity-80 btn-press"
+                                style={{ backgroundColor: 'var(--color-danger)', borderColor: 'var(--color-danger)', color: '#fff' }}
+                                onClick={fetchAliases}
+                            >
+                                Retry
+                            </button>
                         </div>
                     )}
 

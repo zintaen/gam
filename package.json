@@ -21,7 +21,7 @@
         "desktop"
     ],
     "engines": {
-        "node": ">=24.0.0"
+        "node": ">=22.0.0"
     },
     "scripts": {
         "ai:setup": "cyberskill ai:setup",
