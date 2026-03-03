@@ -1,3 +1,7 @@
+## v1.0.11 (2026-03-03)
+
+- 218a3cb feat: use embed font instead of online font
+
 ## v1.0.10 (2026-03-03)
 
 - 2e087e8 feat: add more test cases
