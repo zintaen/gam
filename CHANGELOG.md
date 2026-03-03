@@ -1,3 +1,7 @@
+## v1.0.10 (2026-03-03)
+
+- 2e087e8 feat: add more test cases
+
 ## v1.0.9 (2026-03-02)
 
 - aef9def feat: refactor
