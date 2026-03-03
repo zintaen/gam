@@ -41,7 +41,7 @@
         "vite:build": "vite build"
     },
     "dependencies": {
-        "@cyberskill/shared": "2.28.0",
+        "@cyberskill/shared": "3.0.0",
         "@tauri-apps/api": "2.10.1",
         "@tauri-apps/plugin-process": "2.3.1",
         "@tauri-apps/plugin-updater": "2.10.0",
@@ -67,7 +67,7 @@
         "eslint": "10.0.2",
         "jsdom": "28.1.0",
         "lint-staged": "16.3.1",
-        "postcss": "8.5.6",
+        "postcss": "8.5.8",
         "puppeteer": "24.37.5",
         "simple-git-hooks": "2.13.1",
         "tailwindcss": "4.2.1",

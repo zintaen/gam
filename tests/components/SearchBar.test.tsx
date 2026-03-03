@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -59,10 +59,9 @@ describe('searchBar', () => {
         expect(screen.getByLabelText('Search aliases')).toBeInTheDocument();
     });
 
-    it('focuses on Cmd+F keyboard shortcut', () => {
+    it('has search-input id for global keyboard shortcut targeting', () => {
         render(<SearchBar {...defaultProps} />);
         const input = screen.getByPlaceholderText(/Search aliases/i);
-        fireEvent.keyDown(document, { key: 'f', metaKey: true });
-        expect(document.activeElement).toBe(input);
+        expect(input).toHaveAttribute('id', 'search-input');
     });
 });

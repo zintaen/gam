@@ -77,6 +77,8 @@ export function SettingsDropdown({
                 <button
                     className={btnClass(openPanel === 'theme')}
                     onClick={() => toggle('theme')}
+                    aria-haspopup="true"
+                    aria-expanded={openPanel === 'theme'}
                 >
                     🎨
                     {tooltip('Theme')}
@@ -165,6 +167,8 @@ export function SettingsDropdown({
                 <button
                     className={btnClass(openPanel === 'data')}
                     onClick={() => toggle('data')}
+                    aria-haspopup="true"
+                    aria-expanded={openPanel === 'data'}
                 >
                     📋
                     {tooltip('Data')}
@@ -214,6 +218,8 @@ export function SettingsDropdown({
                 <button
                     className={btnClass(openPanel === 'about')}
                     onClick={() => toggle('about')}
+                    aria-haspopup="true"
+                    aria-expanded={openPanel === 'about'}
                 >
                     ℹ️
                     {tooltip('About')}

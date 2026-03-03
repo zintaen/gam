@@ -14,25 +14,24 @@ pub struct AliasGroup {
 
 /// Persisted data: groups + alias→group assignments.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct GroupData {
     pub groups: Vec<AliasGroup>,
     /// Maps alias name → vec of group IDs.
     pub assignments: HashMap<String, Vec<String>>,
 }
 
-impl Default for GroupData {
-    fn default() -> Self {
-        Self {
-            groups: Vec::new(),
-            assignments: HashMap::new(),
-        }
-    }
-}
 
 /// Manages alias groups stored in a JSON file in the app data directory.
 pub struct GroupService {
     config_path: PathBuf,
     data: GroupData,
+}
+
+impl Default for GroupService {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GroupService {
@@ -55,11 +54,10 @@ impl GroupService {
     }
 
     fn load(&mut self) {
-        if let Ok(content) = fs::read_to_string(&self.config_path) {
-            if let Ok(data) = serde_json::from_str::<GroupData>(&content) {
+        if let Ok(content) = fs::read_to_string(&self.config_path)
+            && let Ok(data) = serde_json::from_str::<GroupData>(&content) {
                 self.data = data;
             }
-        }
     }
 
     fn save(&self) {
@@ -304,6 +302,83 @@ mod tests {
         svc.set_alias_groups("st", vec![g.id.clone()]);
         let all = svc.get_all_assignments();
         assert_eq!(all.len(), 2);
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn import_data_merges_groups() {
+        let (mut svc, dir) = temp_group_service();
+        svc.create_group("Existing", "#111");
+
+        let incoming = GroupData {
+            groups: vec![AliasGroup {
+                id: "g-incoming".into(),
+                name: "Imported".into(),
+                color: "#222".into(),
+            }],
+            assignments: {
+                let mut m = HashMap::new();
+                m.insert("co".to_string(), vec!["g-incoming".to_string()]);
+                m
+            },
+        };
+        svc.import_data(incoming);
+        assert_eq!(svc.get_groups().len(), 2);
+        assert_eq!(svc.get_alias_groups("co"), vec!["g-incoming"]);
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn import_data_skips_duplicate_ids() {
+        let (mut svc, dir) = temp_group_service();
+        let existing = svc.create_group("Original", "#111");
+
+        let incoming = GroupData {
+            groups: vec![AliasGroup {
+                id: existing.id.clone(),
+                name: "Duplicate".into(),
+                color: "#999".into(),
+            }],
+            assignments: HashMap::new(),
+        };
+        svc.import_data(incoming);
+        // Should not duplicate; still 1 group with original name
+        assert_eq!(svc.get_groups().len(), 1);
+        assert_eq!(svc.get_groups()[0].name, "Original");
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn set_group_color_updates() {
+        let (mut svc, dir) = temp_group_service();
+        let g = svc.create_group("CI", "#aaa");
+        svc.set_group_color(&g.id, "#00ff00").unwrap();
+        assert_eq!(svc.get_groups()[0].color, "#00ff00");
+        cleanup(&dir);
+    }
+
+    #[test]
+    fn load_restores_persisted_data() {
+        let id;
+        let dir;
+        let config_path;
+        {
+            let (mut svc, d) = temp_group_service();
+            dir = d;
+            config_path = svc.config_path.clone();
+            let g = svc.create_group("Persisted", "#abc");
+            id = g.id;
+            svc.set_alias_groups("st", vec![id.clone()]);
+        }
+        // Create a new service instance pointing to the same file
+        let mut svc2 = GroupService {
+            config_path,
+            data: GroupData::default(),
+        };
+        svc2.load();
+        assert_eq!(svc2.get_groups().len(), 1);
+        assert_eq!(svc2.get_groups()[0].name, "Persisted");
+        assert_eq!(svc2.get_alias_groups("st"), vec![id]);
         cleanup(&dir);
     }
 }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface I_ConfirmDialogProps {
     title: string;
@@ -21,20 +21,45 @@ export function ConfirmDialog({
     onCancel,
 }: I_ConfirmDialogProps) {
     const [entered, setEntered] = useState(false);
+    const dialogRef = useRef<HTMLDivElement>(null);
+    const cancelRef = useRef<HTMLButtonElement>(null);
+
+    // Focus trap
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            onCancel();
+            return;
+        }
+        if (e.key === 'Tab' && dialogRef.current) {
+            const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+            );
+            if (focusable.length === 0)
+                return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            }
+            else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    }, [onCancel]);
 
     useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape')
-                onCancel();
-        };
-        window.addEventListener('keydown', handler);
+        window.addEventListener('keydown', handleKeyDown);
         const timer = setTimeout(() => setEntered(true), 400);
+        // Auto-focus cancel button
+        cancelRef.current?.focus();
 
         return () => {
-            window.removeEventListener('keydown', handler);
+            window.removeEventListener('keydown', handleKeyDown);
             clearTimeout(timer);
         };
-    }, [onCancel]);
+    }, [handleKeyDown]);
 
     return (
         <div
@@ -43,7 +68,12 @@ export function ConfirmDialog({
             onClick={onCancel}
         >
             <div
+                ref={dialogRef}
                 className="w-[90%] max-w-[380px] flex flex-col overflow-hidden animate-bounce-in rounded-xl border theme-card"
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="confirm-dialog-title"
+                aria-describedby="confirm-dialog-message"
                 style={{
                     backgroundColor: 'var(--color-surface-raised)',
                     borderColor: 'var(--color-border)',
@@ -52,7 +82,7 @@ export function ConfirmDialog({
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center px-5 py-3 border-b" style={{ borderColor: 'var(--color-border)' }}>
-                    <h2 className="m-0 text-base font-bold flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
+                    <h2 id="confirm-dialog-title" className="m-0 text-base font-bold flex items-center gap-2" style={{ color: 'var(--color-text)' }}>
                         {confirmDanger && <span className="text-lg" style={{ color: 'var(--color-danger)' }}>⚠</span>}
                         {title}
                     </h2>
@@ -66,7 +96,7 @@ export function ConfirmDialog({
                 </div>
 
                 <div className="flex flex-col gap-3 py-4 px-5">
-                    <div className="text-sm leading-relaxed" style={{ color: 'var(--color-text)' }}>{message}</div>
+                    <div id="confirm-dialog-message" className="text-sm leading-relaxed" style={{ color: 'var(--color-text)' }}>{message}</div>
                     {detail && (
                         <div
                             className="font-mono text-xs px-3 py-2 rounded break-all border border-dashed"
@@ -79,6 +109,7 @@ export function ConfirmDialog({
 
                 <div className="flex justify-end gap-2.5 px-5 py-3 border-t" style={{ borderColor: 'var(--color-border)' }}>
                     <button
+                        ref={cancelRef}
                         className="px-4 py-1.5 text-sm font-bold bg-transparent border rounded transition-all cursor-pointer btn-press"
                         style={{ color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }}
                         onClick={onCancel}

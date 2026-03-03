@@ -14,17 +14,6 @@ export const SearchBar = React.memo(({
 }: I_SearchBarProps) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
 
-    React.useEffect(() => {
-        function handleKeyDown(e: KeyboardEvent) {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
-                e.preventDefault();
-                inputRef.current?.focus();
-            }
-        }
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, []);
-
     return (
         <div className="relative" role="search">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base pointer-events-none select-none transition-transform duration-200" style={{ color: 'var(--color-text-muted)' }} aria-hidden="true">

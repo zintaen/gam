@@ -206,9 +206,9 @@ pub async fn import_aliases(
             let path_str = path.into_path().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
 
             // Also import group data if present in the file
-            if let Ok(content) = std::fs::read_to_string(&path_str) {
-                if let Ok(export_data) = serde_json::from_str::<crate::file_service::ExportData>(&content) {
-                    if export_data.groups.is_some() || export_data.assignments.is_some() {
+            if let Ok(content) = std::fs::read_to_string(&path_str)
+                && let Ok(export_data) = serde_json::from_str::<crate::file_service::ExportData>(&content)
+                    && (export_data.groups.is_some() || export_data.assignments.is_some()) {
                         let incoming = crate::group_service::GroupData {
                             groups: export_data.groups.unwrap_or_default(),
                             assignments: export_data.assignments.unwrap_or_default(),
@@ -216,8 +216,6 @@ pub async fn import_aliases(
                         let mut group_svc = state.group_service.write().unwrap_or_else(|e| e.into_inner());
                         group_svc.import_data(incoming);
                     }
-                }
-            }
 
             match FileService::import_aliases(&path_str) {
                 Ok(aliases) => Ok(IpcResult::ok(aliases)),
@@ -232,6 +230,10 @@ pub async fn import_aliases(
 
 #[tauri::command]
 pub fn open_local_folder(path: String) -> IpcResult<bool> {
+    let p = Path::new(&path);
+    if !p.exists() || !p.is_dir() {
+        return IpcResult::err(format!("Not a valid directory: {}", path));
+    }
     match open::that(&path) {
         Ok(()) => IpcResult::ok(true),
         Err(e) => IpcResult::err(format!("Failed to open folder: {}", e)),
@@ -240,6 +242,10 @@ pub fn open_local_folder(path: String) -> IpcResult<bool> {
 
 #[tauri::command]
 pub fn open_external(url: String) -> IpcResult<bool> {
+    // Only allow HTTPS URLs — block file://, ssh://, custom protocols
+    if !url.starts_with("https://") {
+        return IpcResult::err("Only HTTPS URLs are allowed".to_string());
+    }
     match open::that(&url) {
         Ok(()) => IpcResult::ok(true),
         Err(e) => IpcResult::err(format!("Failed to open URL: {}", e)),

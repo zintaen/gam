@@ -22,7 +22,7 @@ function createOptions(overrides: Partial<Parameters<typeof useAliasActions>[0]>
         updateAlias: vi.fn().mockResolvedValue(undefined),
         deleteAlias: vi.fn().mockResolvedValue(undefined),
         addToast: vi.fn(),
-        setDeletingAlias: vi.fn(),
+        clearDeletingAlias: vi.fn(),
         ...overrides,
     };
 }
@@ -75,7 +75,7 @@ describe('useAliasActions', () => {
         });
 
         expect(opts.deleteAlias).toHaveBeenCalledWith('st', 'global', undefined);
-        expect(opts.setDeletingAlias).toHaveBeenCalledWith(null);
+        expect(opts.clearDeletingAlias).toHaveBeenCalled();
         expect(opts.addToast).toHaveBeenCalledWith('success', 'Alias "st" deleted');
     });
 

@@ -44,6 +44,17 @@ impl FileService {
     }
 
     pub fn import_aliases(file_path: &str) -> Result<Vec<GitAlias>, String> {
+        // Cap file size to prevent OOM on maliciously large files
+        const MAX_IMPORT_SIZE: u64 = 10 * 1024 * 1024; // 10 MB
+        let meta = fs::metadata(file_path)
+            .map_err(|e| format!("Failed to read file: {}", e))?;
+        if meta.len() > MAX_IMPORT_SIZE {
+            return Err(format!(
+                "File too large ({:.1} MB). Maximum import size is 10 MB.",
+                meta.len() as f64 / 1_048_576.0
+            ));
+        }
+
         let content =
             fs::read_to_string(file_path).map_err(|e| format!("Failed to read file: {}", e))?;
 

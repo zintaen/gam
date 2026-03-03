@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crate::git_service::GitAlias;
@@ -13,6 +14,20 @@ const MULTIPLIER_OLD: f64 = 0.25;
 /// If the total score across all aliases exceeds this threshold,
 /// all frequencies are halved to prevent score inflation.
 const SCORE_CEILING: f64 = 70_000.0;
+
+/// Precompiled regex patterns for shell history parsing.
+fn re_zsh_timestamped() -> &'static regex_lite::Regex {
+    static RE: OnceLock<regex_lite::Regex> = OnceLock::new();
+    RE.get_or_init(|| regex_lite::Regex::new(r":\s*(\d+):\d+;.*?git\s+([\w-]+)").unwrap())
+}
+fn re_zsh_plain() -> &'static regex_lite::Regex {
+    static RE: OnceLock<regex_lite::Regex> = OnceLock::new();
+    RE.get_or_init(|| regex_lite::Regex::new(r"(?m)^git\s+([\w-]+)").unwrap())
+}
+fn re_git_cmd() -> &'static regex_lite::Regex {
+    static RE: OnceLock<regex_lite::Regex> = OnceLock::new();
+    RE.get_or_init(|| regex_lite::Regex::new(r"git\s+([\w-]+)").unwrap())
+}
 
 /// Entry tracking both total frequency and most-recent timestamp.
 struct HistoryEntry {
@@ -33,6 +48,12 @@ pub struct RankingService {
     history_cache: HashMap<String, HistoryEntry>,
     last_fetch_time: Option<Instant>,
     cache_ttl: Duration,
+}
+
+impl Default for RankingService {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl RankingService {
@@ -164,50 +185,47 @@ impl RankingService {
 
     /// Parse zsh history with timestamps: ": 1234567890:0;git checkout main"
     fn parse_zsh_history(content: &str, cache: &mut HashMap<String, HistoryEntry>) {
-        if let Ok(re) = regex_lite::Regex::new(r":\s*(\d+):\d+;.*?git\s+([\w-]+)") {
-            for cap in re.captures_iter(content) {
-                if let (Some(ts), Some(cmd)) = (cap.get(1), cap.get(2)) {
-                    let timestamp: u64 = ts.as_str().parse().unwrap_or(0);
-                    let key = format!("git {}", cmd.as_str());
-                    let entry = cache.entry(key).or_insert(HistoryEntry {
-                        frequency: 0.0,
-                        last_seen: 0,
-                    });
-                    entry.frequency += 1.0;
-                    if timestamp > entry.last_seen {
-                        entry.last_seen = timestamp;
-                    }
+        let re = re_zsh_timestamped();
+        for cap in re.captures_iter(content) {
+            if let (Some(ts), Some(cmd)) = (cap.get(1), cap.get(2)) {
+                let timestamp: u64 = ts.as_str().parse().unwrap_or(0);
+                let key = format!("git {}", cmd.as_str());
+                let entry = cache.entry(key).or_insert(HistoryEntry {
+                    frequency: 0.0,
+                    last_seen: 0,
+                });
+                entry.frequency += 1.0;
+                if timestamp > entry.last_seen {
+                    entry.last_seen = timestamp;
                 }
             }
         }
 
         // Also match plain "git xxx" lines without the timestamp prefix
-        if let Ok(re) = regex_lite::Regex::new(r"(?m)^git\s+([\w-]+)") {
-            for cap in re.captures_iter(content) {
-                if let Some(cmd) = cap.get(1) {
-                    let key = format!("git {}", cmd.as_str());
-                    let entry = cache.entry(key).or_insert(HistoryEntry {
-                        frequency: 0.0,
-                        last_seen: 0,
-                    });
-                    entry.frequency += 1.0;
-                }
+        let re_plain = re_zsh_plain();
+        for cap in re_plain.captures_iter(content) {
+            if let Some(cmd) = cap.get(1) {
+                let key = format!("git {}", cmd.as_str());
+                let entry = cache.entry(key).or_insert(HistoryEntry {
+                    frequency: 0.0,
+                    last_seen: 0,
+                });
+                entry.frequency += 1.0;
             }
         }
     }
 
     /// Parse plain history (PowerShell) — no timestamps available.
     fn parse_plain_history(content: &str, cache: &mut HashMap<String, HistoryEntry>) {
-        if let Ok(re) = regex_lite::Regex::new(r"git\s+([\w-]+)") {
-            for cap in re.captures_iter(content) {
-                if let Some(m) = cap.get(1) {
-                    let key = format!("git {}", m.as_str());
-                    let entry = cache.entry(key).or_insert(HistoryEntry {
-                        frequency: 0.0,
-                        last_seen: 0,
-                    });
-                    entry.frequency += 1.0;
-                }
+        let re = re_git_cmd();
+        for cap in re.captures_iter(content) {
+            if let Some(m) = cap.get(1) {
+                let key = format!("git {}", m.as_str());
+                let entry = cache.entry(key).or_insert(HistoryEntry {
+                    frequency: 0.0,
+                    last_seen: 0,
+                });
+                entry.frequency += 1.0;
             }
         }
     }
@@ -216,19 +234,19 @@ impl RankingService {
     /// Timestamped format: lines starting with `#1234567890` followed by the command on the next line.
     fn parse_bash_history(content: &str, cache: &mut HashMap<String, HistoryEntry>) {
         let lines: Vec<&str> = content.lines().collect();
-        let git_re = regex_lite::Regex::new(r"git\s+([\w-]+)").unwrap();
+        let git_re = re_git_cmd();
 
         let mut i = 0;
         while i < lines.len() {
             let line = lines[i];
 
             // Check for timestamp prefix: #1234567890
-            if line.starts_with('#') {
-                if let Ok(ts) = line[1..].trim().parse::<u64>() {
+            if line.starts_with('#')
+                && let Ok(ts) = line[1..].trim().parse::<u64>() {
                     // Next line is the command
                     if i + 1 < lines.len() {
-                        if let Some(cap) = git_re.captures(lines[i + 1]) {
-                            if let Some(cmd) = cap.get(1) {
+                        if let Some(cap) = git_re.captures(lines[i + 1])
+                            && let Some(cmd) = cap.get(1) {
                                 let key = format!("git {}", cmd.as_str());
                                 let entry = cache.entry(key).or_insert(HistoryEntry {
                                     frequency: 0.0,
@@ -239,16 +257,14 @@ impl RankingService {
                                     entry.last_seen = ts;
                                 }
                             }
-                        }
                         i += 2;
                         continue;
                     }
                 }
-            }
 
             // Plain line (no timestamp)
-            if let Some(cap) = git_re.captures(line) {
-                if let Some(cmd) = cap.get(1) {
+            if let Some(cap) = git_re.captures(line)
+                && let Some(cmd) = cap.get(1) {
                     let key = format!("git {}", cmd.as_str());
                     let entry = cache.entry(key).or_insert(HistoryEntry {
                         frequency: 0.0,
@@ -256,7 +272,6 @@ impl RankingService {
                     });
                     entry.frequency += 1.0;
                 }
-            }
 
             i += 1;
         }
@@ -268,7 +283,7 @@ impl RankingService {
     ///   when: 1700000000
     /// ```
     fn parse_fish_history(content: &str, cache: &mut HashMap<String, HistoryEntry>) {
-        let git_re = regex_lite::Regex::new(r"git\s+([\w-]+)").unwrap();
+        let git_re = re_git_cmd();
         let mut current_cmd: Option<String> = None;
 
         for line in content.lines() {
@@ -279,8 +294,8 @@ impl RankingService {
             } else if let Some(when_part) = trimmed.strip_prefix("when:") {
                 if let Some(ref cmd) = current_cmd {
                     let timestamp: u64 = when_part.trim().parse().unwrap_or(0);
-                    if let Some(cap) = git_re.captures(cmd) {
-                        if let Some(m) = cap.get(1) {
+                    if let Some(cap) = git_re.captures(cmd)
+                        && let Some(m) = cap.get(1) {
                             let key = format!("git {}", m.as_str());
                             let entry = cache.entry(key).or_insert(HistoryEntry {
                                 frequency: 0.0,
@@ -291,16 +306,15 @@ impl RankingService {
                                 entry.last_seen = timestamp;
                             }
                         }
-                    }
                 }
                 current_cmd = None;
             }
         }
 
         // Handle trailing cmd without when
-        if let Some(ref cmd) = current_cmd {
-            if let Some(cap) = git_re.captures(cmd) {
-                if let Some(m) = cap.get(1) {
+        if let Some(ref cmd) = current_cmd
+            && let Some(cap) = git_re.captures(cmd)
+                && let Some(m) = cap.get(1) {
                     let key = format!("git {}", m.as_str());
                     let entry = cache.entry(key).or_insert(HistoryEntry {
                         frequency: 0.0,
@@ -308,8 +322,6 @@ impl RankingService {
                     });
                     entry.frequency += 1.0;
                 }
-            }
-        }
     }
 }
 

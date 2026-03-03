@@ -1,4 +1,5 @@
 use std::process::Command;
+use std::sync::OnceLock;
 
 use serde::{Deserialize, Serialize};
 
@@ -37,6 +38,12 @@ pub struct GitService {
     local_path: Option<String>,
     known_repos_service: KnownReposService,
     ranking_service: RankingService,
+}
+
+impl Default for GitService {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GitService {
@@ -186,6 +193,9 @@ impl GitService {
         scope: &str,
         local_path: Option<&str>,
     ) -> Result<(), String> {
+        // Defense-in-depth: validate alias name even though frontend also checks
+        Self::validate_alias_name(name)?;
+
         // Check if alias already exists
         let existing = self.get_aliases(scope)?;
         if existing.iter().any(|a| a.name == name) {
@@ -219,6 +229,8 @@ impl GitService {
         scope: &str,
         local_path: Option<&str>,
     ) -> Result<(), String> {
+        Self::validate_alias_name(name)?;
+
         let target_path = if scope == "local" {
             local_path
                 .map(|s| s.to_string())
@@ -288,12 +300,22 @@ impl GitService {
             };
         }
 
-        // Check for dangerous patterns
-        for (pattern, message) in DANGEROUS_PATTERNS {
-            if let Ok(re) = regex_lite::Regex::new(pattern) {
-                if re.is_match(command) {
-                    warnings.push(message.to_string());
-                }
+        // Check for dangerous patterns (precompiled once via OnceLock)
+        fn dangerous_patterns() -> &'static [(regex_lite::Regex, &'static str)] {
+            static PATTERNS: OnceLock<Vec<(regex_lite::Regex, &'static str)>> = OnceLock::new();
+            PATTERNS.get_or_init(|| {
+                DANGEROUS_PATTERNS
+                    .iter()
+                    .filter_map(|(pat, msg)| {
+                        regex_lite::Regex::new(pat).ok().map(|re| (re, *msg))
+                    })
+                    .collect()
+            })
+        }
+
+        for (re, message) in dangerous_patterns() {
+            if re.is_match(command) {
+                warnings.push(message.to_string());
             }
         }
 
@@ -309,6 +331,26 @@ impl GitService {
             warnings,
             errors,
         }
+    }
+
+    /// Validates that an alias name matches `^[a-zA-Z][\w-]*$`.
+    /// Defense-in-depth: the frontend enforces the same rule.
+    fn validate_alias_name(name: &str) -> Result<(), String> {
+        fn alias_name_re() -> &'static regex_lite::Regex {
+            static RE: OnceLock<regex_lite::Regex> = OnceLock::new();
+            RE.get_or_init(|| regex_lite::Regex::new(r"^[a-zA-Z][\w-]*$").unwrap())
+        }
+
+        if name.is_empty() {
+            return Err("Alias name cannot be empty".to_string());
+        }
+        if !alias_name_re().is_match(name) {
+            return Err(format!(
+                "Invalid alias name \"{}\": must start with a letter and contain only letters, numbers, hyphens, underscores",
+                name
+            ));
+        }
+        Ok(())
     }
 }
 
@@ -433,5 +475,37 @@ mod tests {
         svc.set_local_path(Some("/tmp/test-repo".to_string()));
         svc.set_local_path(None);
         assert!(svc.get_local_path().is_none());
+    }
+
+    #[test]
+    fn validate_alias_name_accepts_valid() {
+        assert!(GitService::validate_alias_name("co").is_ok());
+        assert!(GitService::validate_alias_name("checkout-main").is_ok());
+        assert!(GitService::validate_alias_name("st2").is_ok());
+        assert!(GitService::validate_alias_name("my_alias").is_ok());
+    }
+
+    #[test]
+    fn validate_alias_name_rejects_empty() {
+        assert!(GitService::validate_alias_name("").is_err());
+    }
+
+    #[test]
+    fn validate_alias_name_rejects_special_chars() {
+        assert!(GitService::validate_alias_name("co;rm").is_err());
+        assert!(GitService::validate_alias_name("co\ngit push").is_err());
+        assert!(GitService::validate_alias_name("co && echo").is_err());
+    }
+
+    #[test]
+    fn validate_alias_name_rejects_numeric_start() {
+        assert!(GitService::validate_alias_name("1co").is_err());
+        assert!(GitService::validate_alias_name("-dash").is_err());
+    }
+
+    #[test]
+    fn validate_alias_name_rejects_injection() {
+        assert!(GitService::validate_alias_name("co\ngit push --force").is_err());
+        assert!(GitService::validate_alias_name("alias.evil").is_err());
     }
 }

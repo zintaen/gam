@@ -6,3 +6,6 @@ coverage
 .DS_Store
 package-lock.json
 .env
+.simple-git-hooks.json
+
+.agent

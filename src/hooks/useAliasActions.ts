@@ -15,7 +15,7 @@ interface I_UseAliasActionsOptions {
     updateAlias: (oldName: string, name: string, command: string, scope: 'global' | 'local', localPath?: string) => Promise<void>;
     deleteAlias: (name: string, scope: 'global' | 'local', localPath?: string) => Promise<void>;
     addToast: (type: T_ToastType, message: string) => void;
-    setDeletingAlias: (alias: I_GitAlias | null) => void;
+    clearDeletingAlias: () => void;
 }
 
 export function useAliasActions({
@@ -26,7 +26,7 @@ export function useAliasActions({
     updateAlias,
     deleteAlias,
     addToast,
-    setDeletingAlias,
+    clearDeletingAlias,
 }: I_UseAliasActionsOptions) {
     const handleSave = useCallback(
         async (name: string, command: string, aliasScope: 'global' | 'local', targetLocalPath?: string) => {
@@ -57,9 +57,9 @@ export function useAliasActions({
             catch (err: any) {
                 addToast('error', err.message || 'Failed to delete alias');
             }
-            setDeletingAlias(null);
+            clearDeletingAlias();
         }
-    }, [deletingAlias, deleteAlias, addToast, setDeletingAlias]);
+    }, [deletingAlias, deleteAlias, addToast, clearDeletingAlias]);
 
     const handleImport = useCallback(async () => {
         if (!isTauri) {

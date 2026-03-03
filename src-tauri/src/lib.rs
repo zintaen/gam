@@ -1,6 +1,7 @@
 use std::sync::RwLock;
 
 mod commands;
+mod error;
 mod file_service;
 mod git_service;
 mod group_service;

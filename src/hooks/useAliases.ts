@@ -85,13 +85,25 @@ export function useAliases() {
 
     const addAlias = useCallback(
         async (name: string, command: string, aliasScope: 'global' | 'local', localPath?: string) => {
-            const api = getAPI();
-            const result = await api.addAlias(name, command, aliasScope, localPath);
+            // Optimistic: add to local state immediately
+            const optimistic: I_GitAlias = { name, command, scope: aliasScope, localPath };
+            setAliases(prev => [...prev, optimistic]);
 
-            if ('success' in result && !result.success) {
-                throw new Error(result.error || 'Failed to add alias');
+            try {
+                const api = getAPI();
+                const result = await api.addAlias(name, command, aliasScope, localPath);
+
+                if ('success' in result && !result.success) {
+                    throw new Error(result.error || 'Failed to add alias');
+                }
+                // Background refresh to get server-confirmed state (scores, etc.)
+                await fetchAliases();
             }
-            await fetchAliases();
+            catch (err) {
+                // Rollback on failure
+                await fetchAliases();
+                throw err;
+            }
         },
         [fetchAliases],
     );
@@ -104,30 +116,54 @@ export function useAliases() {
             aliasScope: 'global' | 'local',
             localPath?: string,
         ) => {
-            const api = getAPI();
-            const result = await api.updateAlias(oldName, name, command, aliasScope, localPath);
+            // Optimistic: patch alias in local state immediately
+            setAliases(prev =>
+                prev.map(a =>
+                    a.name === oldName && a.scope === aliasScope
+                        ? { ...a, name, command, scope: aliasScope, localPath }
+                        : a,
+                ),
+            );
 
-            if ('success' in result && !result.success) {
-                throw new Error(result.error || 'Failed to update alias');
+            try {
+                const api = getAPI();
+                const result = await api.updateAlias(oldName, name, command, aliasScope, localPath);
+
+                if ('success' in result && !result.success) {
+                    throw new Error(result.error || 'Failed to update alias');
+                }
+                await fetchAliases();
             }
-
-            await fetchAliases();
+            catch (err) {
+                await fetchAliases();
+                throw err;
+            }
         },
         [fetchAliases],
     );
 
     const deleteAlias = useCallback(
         async (name: string, aliasScope: 'global' | 'local', localPath?: string) => {
-            const api = getAPI();
-            const result = await api.deleteAlias(name, aliasScope, localPath);
+            // Optimistic: remove from local state immediately
+            const snapshot = aliases;
+            setAliases(prev => prev.filter(a => !(a.name === name && a.scope === aliasScope)));
 
-            if ('success' in result && !result.success) {
-                throw new Error(result.error || 'Failed to delete alias');
+            try {
+                const api = getAPI();
+                const result = await api.deleteAlias(name, aliasScope, localPath);
+
+                if ('success' in result && !result.success) {
+                    throw new Error(result.error || 'Failed to delete alias');
+                }
+                await fetchAliases();
             }
-
-            await fetchAliases();
+            catch (err) {
+                // Rollback: restore snapshot on failure
+                setAliases(snapshot);
+                throw err;
+            }
         },
-        [fetchAliases],
+        [aliases, fetchAliases],
     );
 
     return {

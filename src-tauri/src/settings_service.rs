@@ -8,6 +8,12 @@ pub struct SettingsService {
     settings: HashMap<String, String>,
 }
 
+impl Default for SettingsService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SettingsService {
     pub fn new() -> Self {
         let config_dir = dirs::data_dir()
@@ -28,11 +34,10 @@ impl SettingsService {
     }
 
     fn load(&mut self) {
-        if let Ok(data) = fs::read_to_string(&self.config_path) {
-            if let Ok(map) = serde_json::from_str::<HashMap<String, String>>(&data) {
+        if let Ok(data) = fs::read_to_string(&self.config_path)
+            && let Ok(map) = serde_json::from_str::<HashMap<String, String>>(&data) {
                 self.settings = map;
             }
-        }
     }
 
     fn save(&self) {

@@ -8,6 +8,12 @@ pub struct KnownReposService {
     known_paths: HashSet<String>,
 }
 
+impl Default for KnownReposService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl KnownReposService {
     pub fn new() -> Self {
         let config_dir = dirs::data_dir()
@@ -28,15 +34,14 @@ impl KnownReposService {
     }
 
     fn load(&mut self) {
-        if let Ok(data) = fs::read_to_string(&self.config_path) {
-            if let Ok(paths) = serde_json::from_str::<Vec<String>>(&data) {
+        if let Ok(data) = fs::read_to_string(&self.config_path)
+            && let Ok(paths) = serde_json::from_str::<Vec<String>>(&data) {
                 // Filter out paths that no longer exist
                 self.known_paths = paths
                     .into_iter()
                     .filter(|p| Path::new(p).exists())
                     .collect();
             }
-        }
     }
 
     fn save(&self) {

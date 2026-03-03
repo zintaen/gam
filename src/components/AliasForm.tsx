@@ -156,6 +156,9 @@ export function AliasForm({
         >
             <div
                 className="w-[90%] max-w-[560px] flex flex-col overflow-hidden animate-bounce-in rounded-xl border theme-card"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="alias-form-title"
                 style={{ backgroundColor: 'var(--color-surface-raised)', borderColor: 'var(--color-border)' }}
                 onClick={e => e.stopPropagation()}
             >
