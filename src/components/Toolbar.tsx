@@ -1,5 +1,3 @@
-import * as React from 'react';
-
 interface I_ToolbarProps {
     scope: 'global' | 'local' | 'all';
     onScopeChange: (scope: 'global' | 'local' | 'all') => void;

@@ -64,7 +64,7 @@ export function ContentArea({
     return (
         <div className="flex-1 flex flex-col px-6 py-5 gap-5 overflow-hidden relative">
             {/* Red margin line (notebook only) */}
-            <div className="nb-margin-line absolute left-10 top-0 bottom-0 w-px z-0 pointer-events-none" style={{ backgroundColor: 'var(--color-danger)', opacity: 0.08 }} />
+            <div className="nb-margin-line--subtle absolute left-10 top-0 bottom-0 w-px z-0 pointer-events-none" />
 
             <Toolbar
                 scope={scope}
@@ -84,14 +84,12 @@ export function ContentArea({
 
             {error && (
                 <div
-                    className="rounded-lg border px-5 py-3 flex items-center gap-3"
-                    style={{ backgroundColor: 'var(--color-danger-muted)', borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
+                    className="error-banner rounded-lg border px-5 py-3 flex items-center gap-3"
                 >
                     <span className="font-bold text-lg">✗</span>
                     <span className="text-sm font-bold flex-1">{error}</span>
                     <button
-                        className="px-3 py-1 text-xs font-bold rounded border cursor-pointer transition-all duration-200 hover:opacity-80 btn-press"
-                        style={{ backgroundColor: 'var(--color-danger)', borderColor: 'var(--color-danger)', color: '#fff' }}
+                        className="error-banner-btn px-3 py-1 text-xs font-bold rounded border cursor-pointer transition-all duration-200 hover:opacity-80 btn-press"
                         onClick={fetchAliases}
                     >
                         Retry

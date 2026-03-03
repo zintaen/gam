@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
-        "target": "ES2020",
+        "target": "ES2022",
         "jsx": "react-jsx",
         "lib": [
-            "ES2020",
+            "ES2022",
             "DOM",
             "DOM.Iterable"
         ],
@@ -21,8 +21,8 @@
         "allowImportingTsExtensions": true,
         "strict": true,
         "noFallthroughCasesInSwitch": true,
-        "noUnusedLocals": false,
-        "noUnusedParameters": false,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
         "noEmit": true,
         "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,

@@ -38,6 +38,7 @@
     ],
     "template": "#{{CHANGELOG}}\n\n**Full Changelog**: #{{RELEASE_DIFF}}",
     "pr_template": "- #{{TITLE}} (#{{NUMBER}})",
+    "commit_template": "- #{{TITLE}}",
     "empty_template": "No notable changes.",
     "max_pull_requests": 50,
     "sort": {

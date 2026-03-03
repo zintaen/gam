@@ -40,7 +40,7 @@ export function TitleBar({
                 }}
             >
                 {/* Red margin line (notebook only) */}
-                <div className="nb-margin-line absolute left-10 top-0 bottom-0 w-px" style={{ backgroundColor: 'var(--color-danger)', opacity: 0.15 }} />
+                <div className="nb-margin-line absolute left-10 top-0 bottom-0 w-px" />
 
                 <span className="text-sm font-bold tracking-[2px] uppercase flex items-center gap-1.5" style={{ color: 'var(--color-text)' }}>
                     <span className="px-1" style={{ color: 'var(--color-text)' }}>

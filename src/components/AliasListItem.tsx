@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useCallback, useState } from 'react';
 
-import type { I_AliasGroup, I_GitAlias } from '../types';
+import type { I_AliasGroup, I_GitAlias } from '#/types';
 
 export interface I_AliasListItemProps {
     alias: I_GitAlias;
@@ -44,7 +44,7 @@ export const AliasListItem = React.memo(({
 
     return (
         <tr
-            className="group border-b border-l-2 row-hover-lift"
+            className="alias-row group border-b border-l-2 row-hover-lift"
             style={{
                 animation: `rowEnter 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.04}s both`,
                 borderBottomColor: 'var(--color-border)',

@@ -1,9 +1,8 @@
-import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
 
-import type { I_LibraryAlias } from '../services/gitalias-library';
+import type { I_LibraryAlias } from '#/services/gitalias-library';
 
-import { getAllAliases, getByCategory, getCategories, searchLibrary } from '../services/gitalias-library';
+import { getAllAliases, getByCategory, getCategories, searchLibrary } from '#/services/gitalias-library';
 
 interface I_AliasLibraryPickerProps {
     onSelect: (alias: I_LibraryAlias) => void;

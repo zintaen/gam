@@ -184,14 +184,7 @@ export default function App() {
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden relative">
                 {/* Group sidebar */}
-                <div
-                    className="shrink-0 border-r px-2 py-3 overflow-y-auto"
-                    style={{
-                        borderColor: 'var(--color-border)',
-                        backgroundColor: 'var(--color-surface)',
-                        width: 200,
-                    }}
-                >
+                <div className="sidebar-container shrink-0 border-r px-2 py-3 overflow-y-auto">
                     <GroupSidebar
                         groups={groups}
                         activeGroupId={activeGroupId}

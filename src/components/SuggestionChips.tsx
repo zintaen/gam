@@ -1,6 +1,4 @@
-import * as React from 'react';
-
-import type { I_AliasSuggestion } from '../services/suggestion-service';
+import type { I_AliasSuggestion } from '#/services/suggestion-service';
 
 interface I_SuggestionChipsProps {
     suggestions: I_AliasSuggestion[];

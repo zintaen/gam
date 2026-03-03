@@ -2,7 +2,7 @@
    GAM — Git Alias Manager | Multi-Theme Design System
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500;600;700&family=Cormorant:wght@300;400;500;600;700&family=EB+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Lora:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Press+Start+2P&family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import './styles/fonts.css';
 
 /* Core system */
 @import './styles/theme.css';
@@ -24,6 +24,7 @@
 @import './styles/base.css';
 @import './styles/utilities.css';
 @import './styles/theme-components.css';
+@import './styles/layout.css';
 
 @import 'tailwindcss';
 

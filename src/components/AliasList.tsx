@@ -1,7 +1,6 @@
-import * as React from 'react';
 import { useEffect, useMemo, useState } from 'react';
 
-import type { I_AliasGroup, I_GitAlias } from '../types';
+import type { I_AliasGroup, I_GitAlias } from '#/types';
 
 import { AliasListItem } from './AliasListItem';
 

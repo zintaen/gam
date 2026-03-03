@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { I_AliasGroup } from '#/types';
 
-import { isTauri, tauriAPI } from '../lib/tauri';
+import { isTauri, tauriAPI } from '#/lib/tauri';
 
 export function useGroups() {
     const [groups, setGroups] = useState<I_AliasGroup[]>([]);

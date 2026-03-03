@@ -6,11 +6,45 @@ on:
     tags:
       - 'v*'
 
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
+  prepare:
+    name: 📋 Prepare Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.number }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Extract version
+        id: version
+        run: echo "number=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@a34a8009a9588bb86b02a873cf592440e96a5da8  # v6.1.1
+        with:
+          configuration: ".github/changelog-config.json"
+          mode: "COMMIT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release:
+    name: 🏗️ Build & Release
+    needs: prepare
+    timeout-minutes: 30
     permissions:
       contents: write
       id-token: write
@@ -37,8 +71,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-        with:
-          fetch-depth: 0
 
       - name: Install dependencies (Ubuntu only)
         if: matrix.platform == 'ubuntu-24.04'
@@ -70,18 +102,6 @@ jobs:
       - name: Install frontend dependencies
         run: pnpm install
 
-      - name: Extract version
-        id: version
-        run: echo "number=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
-      - name: Generate changelog
-        id: changelog
-        uses: mikepenz/release-changelog-builder-action@a34a8009a9588bb86b02a873cf592440e96a5da8  # v6.1.1
-        with:
-          configuration: ".github/changelog-config.json"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build and publish
         uses: tauri-apps/tauri-action@73fb865345c54760d875b94642314f8c0c894afa  # v0.6.1
         env:
@@ -96,13 +116,13 @@ jobs:
 
             | Platform | Architecture | File |
             |----------|-------------|------|
-            | 🍎 macOS | Apple Silicon (M1/M2/M3/M4) | [`GAM_${{ steps.version.outputs.number }}_aarch64.dmg`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_aarch64.dmg) |
-            | 🍎 macOS | Intel | [`GAM_${{ steps.version.outputs.number }}_x64.dmg`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_x64.dmg) |
-            | 🪟 Windows | x64 (Installer) | [`GAM_${{ steps.version.outputs.number }}_x64-setup.exe`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_x64-setup.exe) |
-            | 🪟 Windows | x64 (MSI) | [`GAM_${{ steps.version.outputs.number }}_x64_en-US.msi`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_x64_en-US.msi) |
-            | 🐧 Linux | x64 (Debian/Ubuntu) | [`GAM_${{ steps.version.outputs.number }}_amd64.deb`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_amd64.deb) |
-            | 🐧 Linux | x64 (Fedora/RHEL) | [`GAM-${{ steps.version.outputs.number }}-1.x86_64.rpm`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM-${{ steps.version.outputs.number }}-1.x86_64.rpm) |
-            | 🐧 Linux | x64 (AppImage) | [`GAM_${{ steps.version.outputs.number }}_amd64.AppImage`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_amd64.AppImage) |
+            | 🍎 macOS | Apple Silicon (M1/M2/M3/M4) | [`GAM_${{ needs.prepare.outputs.version }}_aarch64.dmg`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ needs.prepare.outputs.version }}_aarch64.dmg) |
+            | 🍎 macOS | Intel | [`GAM_${{ needs.prepare.outputs.version }}_x64.dmg`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ needs.prepare.outputs.version }}_x64.dmg) |
+            | 🪟 Windows | x64 (Installer) | [`GAM_${{ needs.prepare.outputs.version }}_x64-setup.exe`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ needs.prepare.outputs.version }}_x64-setup.exe) |
+            | 🪟 Windows | x64 (MSI) | [`GAM_${{ needs.prepare.outputs.version }}_x64_en-US.msi`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ needs.prepare.outputs.version }}_x64_en-US.msi) |
+            | 🐧 Linux | x64 (Debian/Ubuntu) | [`GAM_${{ needs.prepare.outputs.version }}_amd64.deb`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ needs.prepare.outputs.version }}_amd64.deb) |
+            | 🐧 Linux | x64 (Fedora/RHEL) | [`GAM-${{ needs.prepare.outputs.version }}-1.x86_64.rpm`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM-${{ needs.prepare.outputs.version }}-1.x86_64.rpm) |
+            | 🐧 Linux | x64 (AppImage) | [`GAM_${{ needs.prepare.outputs.version }}_amd64.AppImage`](https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ needs.prepare.outputs.version }}_amd64.AppImage) |
 
             > **Note:** `.sig` and `.tar.gz` files are used for auto-update verification. You can safely ignore them.
 
@@ -110,7 +130,7 @@ jobs:
 
             ### 📝 What's Changed
 
-            ${{ steps.changelog.outputs.changelog }}
+            ${{ needs.prepare.outputs.changelog }}
 
             ---
 
@@ -123,17 +143,69 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
+  sbom:
+    name: 📋 Generate SBOM
+    needs: [prepare, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e11c554f704a0b820cbf8c51673f6945e0731532  # v0.20.0
+        with:
+          artifact-name: sbom-${{ needs.prepare.outputs.version }}.spdx.json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${{ github.ref_name }}" \
+            sbom.spdx.json#sbom-${{ needs.prepare.outputs.version }}.spdx.json \
+            --clobber
+
+  attest:
+    name: 🔏 Build Provenance
+    needs: [prepare, release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p artifacts
+          gh release download "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}" \
+            --dir artifacts \
+            --pattern '*.dmg' \
+            --pattern '*.exe' \
+            --pattern '*.msi' \
+            --pattern '*.deb' \
+            --pattern '*.rpm' \
+            --pattern '*.AppImage'
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2  # v2.2.3
+        with:
+          subject-path: 'artifacts/*'
+
   homebrew:
     name: 🍺 Bump Homebrew Cask
-    needs: release
+    needs: [prepare, release]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
     steps:
-      - name: Extract version
-        id: version
-        run: echo "number=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
       - name: Checkout homebrew-tap
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
         with:
@@ -146,7 +218,7 @@ jobs:
       - name: Compute SHA256 of DMG
         id: sha
         run: |
-          DMG_URL="https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ steps.version.outputs.number }}_aarch64.dmg"
+          DMG_URL="https://github.com/zintaen/gam/releases/download/${{ github.ref_name }}/GAM_${{ needs.prepare.outputs.version }}_aarch64.dmg"
           echo "Downloading ${DMG_URL}..."
           SHA=$(curl -sL --fail --retry 5 --retry-delay 10 "${DMG_URL}" | sha256sum | awk '{print $1}')
 
@@ -161,7 +233,7 @@ jobs:
       - name: Update Cask file
         run: |
           CASK_FILE="Casks/gam.rb"
-          VERSION="${{ steps.version.outputs.number }}"
+          VERSION="${{ needs.prepare.outputs.version }}"
           SHA="${{ steps.sha.outputs.sha256 }}"
 
           sed -i "s/version \".*\"/version \"${VERSION}\"/" "${CASK_FILE}"

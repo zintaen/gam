@@ -1,10 +1,14 @@
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { I_LibraryAlias } from '../services/gitalias-library';
-import type { I_GitAlias } from '../types';
+import type { I_LibraryAlias } from '#/services/gitalias-library';
+import type { I_GitAlias } from '#/types';
 
-import { SuggestionService } from '../services/suggestion-service';
+import { SuggestionService } from '#/services/suggestion-service';
+
+import { CommandEditor } from './alias-form/CommandEditor';
+import { DangerZoneWarnings } from './alias-form/DangerZoneWarnings';
+import { ScopeSelector } from './alias-form/ScopeSelector';
 import { AliasLibraryPicker } from './AliasLibraryPicker';
 import { SuggestionChips } from './SuggestionChips';
 
@@ -182,69 +186,14 @@ export function AliasForm({
 
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-5 py-5 px-6 max-h-[70vh] overflow-y-auto">
-                        {/* Scope */}
-                        <div className="flex items-center justify-between">
-                            <label className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Scope</label>
-                            <div
-                                className="flex rounded p-0.5 border relative"
-                                style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-                                role="radiogroup"
-                                aria-label="Scope"
-                            >
-                                <div
-                                    className="absolute top-0.5 bottom-0.5 w-[calc(50%-2px)] border rounded transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-none"
-                                    style={{
-                                        left: scope === 'global' ? '2px' : 'calc(50% + 2px)',
-                                        backgroundColor: 'var(--color-scope-active-bg)',
-                                        borderColor: 'var(--color-border)',
-                                    }}
-                                />
-                                <button
-                                    type="button"
-                                    role="radio"
-                                    className="px-3.5 py-1 text-sm font-bold transition-all duration-200 rounded relative z-[1] bg-transparent border-none cursor-pointer"
-                                    style={{ color: scope === 'global' ? 'var(--color-badge-global-text)' : 'var(--color-text-muted)' }}
-                                    onClick={() => setScope('global')}
-                                    aria-checked={scope === 'global'}
-                                >
-                                    🌐 Global
-                                </button>
-                                <button
-                                    type="button"
-                                    role="radio"
-                                    className="px-3.5 py-1 text-sm font-bold transition-all duration-200 rounded relative z-[1] bg-transparent border-none cursor-pointer"
-                                    style={{ color: scope === 'local' ? 'var(--color-badge-local-text)' : 'var(--color-text-muted)' }}
-                                    onClick={() => setScope('local')}
-                                    aria-checked={scope === 'local'}
-                                >
-                                    📁 Local
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Folder Selection */}
-                        <div
-                            className={`flex items-center gap-2 border border-dashed py-1.5 px-3 rounded transition-all duration-300 ${scope === 'local' ? 'opacity-100 max-h-20' : 'opacity-25 max-h-20 pointer-events-none'}`}
-                            style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-                        >
-                            <span className="text-sm">📁</span>
-                            <span className="font-mono text-xs flex-1 overflow-hidden text-ellipsis whitespace-nowrap" style={{ color: 'var(--color-text-secondary)' }}>
-                                {scope === 'local'
-                                    ? ((alias?.localPath || localPath) || 'No local repository selected')
-                                    : 'Local repo (disabled for global)'}
-                            </span>
-                            {onSelectFolder && !isEditing && (
-                                <button
-                                    type="button"
-                                    className="whitespace-nowrap py-0.5 px-2 text-xs font-bold border rounded disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer btn-press"
-                                    style={{ color: 'var(--color-text-muted)', backgroundColor: 'var(--color-scope-active-bg)', borderColor: 'var(--color-border)' }}
-                                    onClick={async () => { await onSelectFolder(); }}
-                                    disabled={scope !== 'local'}
-                                >
-                                    Change…
-                                </button>
-                            )}
-                        </div>
+                        <ScopeSelector
+                            scope={scope}
+                            onScopeChange={setScope}
+                            isEditing={isEditing}
+                            localPath={localPath}
+                            aliasLocalPath={alias?.localPath}
+                            onSelectFolder={onSelectFolder}
+                        />
 
                         {/* Browse Library Button */}
                         <button
@@ -258,65 +207,15 @@ export function AliasForm({
                             <span className="text-xs font-normal ml-1" style={{ color: 'var(--color-text-muted)' }}>(GitAlias)</span>
                         </button>
 
-                        {/* Command & Alias Name */}
-                        <div className="flex items-start gap-4">
-                            <div className="flex-[2] flex flex-col ink-underline">
-                                <label className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }} htmlFor="aliasCommand">Command</label>
-                                <textarea
-                                    id="aliasCommand"
-                                    className="w-full border-2 rounded py-2 px-3 text-[15px] transition-all duration-200 focus-glow focus:outline-none resize-y font-mono min-h-[40px] theme-input"
-                                    style={{
-                                        backgroundColor: 'var(--color-surface)',
-                                        borderColor: commandError ? 'var(--color-danger)' : 'var(--color-border)',
-                                        color: 'var(--color-text)',
-                                    }}
-                                    placeholder="e.g. checkout, status -sb"
-                                    value={command}
-                                    onChange={e => setCommand(e.target.value)}
-                                    autoFocus={!isEditing}
-                                    rows={command.includes('\n') ? Math.min(command.split('\n').length, 6) : 1}
-                                    aria-invalid={!!commandError}
-                                    aria-describedby={commandError ? 'command-error' : undefined}
-                                />
-                                {commandError && (
-                                    <div id="command-error" className="text-xs mt-1 font-bold animate-fade-in" style={{ color: 'var(--color-danger)' }} aria-live="polite">
-                                        ✗
-                                        {' '}
-                                        {commandError}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex-1 flex flex-col ink-underline">
-                                <label className="text-[11px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-muted)' }} htmlFor="aliasName">Alias Name</label>
-                                <div className="relative flex items-center">
-                                    <span className="absolute left-3 font-mono text-sm font-bold pointer-events-none" style={{ color: 'var(--color-text-muted)' }}>git</span>
-                                    <input
-                                        id="aliasName"
-                                        type="text"
-                                        className="w-full border-2 rounded py-2 pl-10 pr-3 text-[15px] transition-all duration-200 focus-glow focus:outline-none theme-input"
-                                        style={{
-                                            backgroundColor: 'var(--color-surface)',
-                                            borderColor: nameError ? 'var(--color-danger)' : 'var(--color-border)',
-                                            color: 'var(--color-text)',
-                                        }}
-                                        placeholder="e.g. co"
-                                        value={name}
-                                        onChange={e => setName(e.target.value)}
-                                        autoFocus={isEditing}
-                                        aria-invalid={!!nameError}
-                                        aria-describedby={nameError ? 'name-error' : undefined}
-                                    />
-                                </div>
-                                {nameError && (
-                                    <div id="name-error" className="text-xs mt-1 font-bold animate-fade-in" style={{ color: 'var(--color-danger)' }} aria-live="polite">
-                                        ✗
-                                        {' '}
-                                        {nameError}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <CommandEditor
+                            command={command}
+                            onCommandChange={setCommand}
+                            commandError={commandError}
+                            name={name}
+                            onNameChange={setName}
+                            nameError={nameError}
+                            isEditing={isEditing}
+                        />
 
                         {/* Suggestions */}
                         {!isEditing && suggestions.length > 0 && (
@@ -329,21 +228,7 @@ export function AliasForm({
                             />
                         )}
 
-                        {/* Warnings */}
-                        {warnings.length > 0 && (
-                            <div className="flex flex-col gap-1">
-                                {warnings.map((w, i) => (
-                                    <div
-                                        key={i}
-                                        className="border border-dashed px-3 py-1.5 rounded text-sm flex items-center gap-2 animate-fade-in"
-                                        style={{ backgroundColor: 'var(--color-warning-muted)', borderColor: 'var(--color-warning)', color: 'var(--color-text)' }}
-                                    >
-                                        <span>⚠</span>
-                                        <span className="font-bold">{w}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <DangerZoneWarnings warnings={warnings} />
                     </div>
 
                     {/* Footer */}

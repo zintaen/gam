@@ -27,19 +27,86 @@ jobs:
         with:
           components: clippy
 
+      - name: Rust cache
+        uses: swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5  # v2.8.2
+        with:
+          workspaces: './src-tauri -> target'
+
       - name: Lint
         uses: cyberskill-world/.github/actions/lint@main
 
-      - name: Frontend Tests
-        run: pnpm test
+      - name: Frontend Tests with Coverage
+        run: pnpm test -- --coverage
 
       - name: Build Verification
         run: pnpm vite:build
 
       - name: Rust Clippy
         working-directory: src-tauri
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --locked -- -D warnings
 
       - name: Rust Tests
         working-directory: src-tauri
-        run: cargo test --lib
+        run: cargo test --lib --locked
+
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+
+      - name: Env & Deps
+        uses: cyberskill-world/.github/actions/env-deps@main
+
+      - name: npm audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Cargo audit
+        working-directory: src-tauri
+        run: cargo audit
+
+  pr-title:
+    name: 📝 PR Title Check
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Conventional commit PR title
+        uses: amannn/action-semantic-pull-request@0723387faaf9b38adef4775cd42cfd5155ed6017  # v5.5.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+
+  dependency-review:
+    name: 🔍 Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@da24556b548a50705dd671f47852072ea4c105d9  # v4.7.1
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: always

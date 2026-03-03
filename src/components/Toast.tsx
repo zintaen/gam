@@ -1,6 +1,4 @@
-import * as React from 'react';
-
-import type { I_Toast } from '../hooks/useToast';
+import type { I_Toast } from '#/hooks/useToast';
 
 const ICONS: Record<string, string> = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
 
