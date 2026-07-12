@@ -312,3 +312,24 @@ The v1 four-tier `sync_class` (`local-only / publishable / shared / client-visib
 ---
 
 **End of normative spec.** Everything else — Stages 1–6 history, refinement bundles A–Q, audit reports, "we learned…" prose, proposal rationale — lives in `EVOLUTION.md`. Implementation-side reference is `cyberos/README.md`. Cross-agent subset is `INTEROP.md`.
+
+---
+
+# AGENTS.md
+
+This repository runs **CyberOS**. Any coding agent working here follows these rules.
+This file is the cross-tool spine; the full one-pager is `.cyberos/AGENT-ENTRY.md`.
+
+1. Work = feature requests. Read `.cyberos/cuo/ship-feature-requests.md` and drive the
+   next eligible FR in `docs/feature-requests/BACKLOG.md` (frontmatter `status` is the
+   record of truth; one backlog for `class: product` and `class: improvement`).
+2. HITL is required. Halt at review acceptance (`reviewing -> ready_to_test`) and final
+   acceptance (`testing -> done`) for a recorded human verdict. Never set `done` yourself.
+   Doctrine: `.cyberos/cuo/EXECUTION-DISCIPLINE.md`; lifecycle: `.cyberos/cuo/STATUS-REFERENCE.md`.
+3. Gates: `bash .cyberos/cuo/gates/run-gates.sh` (reads `.cyberos/gates.env`). Green is
+   necessary, never sufficient.
+4. Memory (BRAIN): record decisions, audits, and plans into `.cyberos/memory/store/`
+   per the protocol in `.cyberos/memory/AGENTS.md`.
+5. Never push, deploy, merge, or delete without an explicit operator instruction.
+
+<!-- cyberos-agent-spine (managed by cyberos init; edit above/below this marker) -->

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gam status — CyberOS</title>
+<style>
+@import url("assets/status.css");
+* { box-sizing: border-box; }
+body { margin:0; background:var(--cs-color-surface-page); color:var(--cs-color-text-primary);
+  font-family:var(--cs-font-family-ui); font-size:15px; line-height:var(--cs-font-lineHeight-body); }
+.hub-header { background:var(--cs-color-brand-umber); color:var(--cs-color-text-inverse);
+  padding:var(--cs-space-6) var(--cs-space-8) var(--cs-space-5);
+  border-bottom:3px solid var(--cs-color-brand-ochre); }
+.hub-header h1 { margin:0 0 var(--cs-space-1); font-size:26px; letter-spacing:.2px;
+  line-height:var(--cs-font-lineHeight-heading); }
+.hub-sub { color:var(--cs-color-surface-raised); font-size:14px; opacity:.92; }
+.hub-meta { margin-top:var(--cs-space-2); font-size:12.5px; color:var(--cs-color-surface-raised); opacity:.75; }
+.hub-meta .code { font-family:var(--cs-font-family-mono); }
+main.hub-wrap { max-width:1180px; margin:0 auto; padding:var(--cs-space-6) var(--cs-space-6) var(--cs-space-16); }
+.card { background:var(--cs-color-surface-panel); border:1px solid var(--cs-color-border-default);
+  border-radius:12px; padding:var(--cs-space-4) var(--cs-space-5); margin-bottom:var(--cs-space-5); }
+.card h2 { margin:0 0 var(--cs-space-3); font-size:14px; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--cs-color-text-muted); }
+.bar { height:12px; border-radius:var(--cs-radius-full); background:var(--cs-color-surface-raised);
+  overflow:hidden; display:flex; }
+.bar i { display:block; height:100%; }
+.seg-done { background:var(--cs-color-semantic-success); }
+.seg-active { background:var(--cs-color-brand-ochre); }
+.seg-hold { background:var(--cs-color-text-muted); }
+.counts { display:flex; gap:var(--cs-space-5); flex-wrap:wrap; margin-top:var(--cs-space-3); font-size:13.5px; }
+.counts b { font-size:17px; }
+.counts .muted { color:var(--cs-color-text-muted); }
+.callout { background:var(--cs-color-surface-raised); border:1px solid var(--cs-color-brand-ochre);
+  border-left:4px solid var(--cs-color-brand-ochre); border-radius:10px;
+  padding:var(--cs-space-4) var(--cs-space-5); margin-bottom:var(--cs-space-5); }
+.callout h3 { margin:0 0 var(--cs-space-2); font-size:14px; }
+.legend { display:flex; gap:var(--cs-space-4); flex-wrap:wrap; margin:0 0 var(--cs-space-4);
+  font-size:13px; color:var(--cs-color-text-muted); }
+.legend span { display:inline-flex; align-items:center; gap:6px; }
+.dot { width:11px; height:11px; border-radius:3px; display:inline-block; }
+.hub-tabs { display:flex; gap:var(--cs-space-2); border-bottom:2px solid var(--cs-color-border-default);
+  margin-bottom:var(--cs-space-5); }
+.hub-tab { padding:var(--cs-space-2) var(--cs-space-5); text-decoration:none;
+  color:var(--cs-color-text-accent); border:1px solid var(--cs-color-border-default);
+  border-bottom:none; border-radius:var(--cs-radius-md) var(--cs-radius-md) 0 0;
+  background:var(--cs-color-surface-raised); font-size:14px; font-weight:600; }
+.hub-tab[aria-selected="true"] { background:var(--cs-color-brand-umber);
+  color:var(--cs-color-text-inverse); border-color:var(--cs-color-brand-umber); }
+.hub-panel[hidden] { display:none; }
+.hub-foot { margin-top:var(--cs-space-12); text-align:center; font-size:12px;
+  color:var(--cs-color-text-muted); }
+</style>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+</head>
+<body data-template-id="status-hub@1">
+<header class="hub-header">
+  <h1>gam status</h1>
+  <div class="hub-sub">Where gam is and what is coming — generated from FR frontmatter, CHANGELOG, and VERSION</div>
+  <div class="hub-meta">VERSION <span class="code">unversioned</span> · built from <span class="code">ac65b429dac1</span> · 0 FRs · 13 releases</div>
+</header>
+<main class="hub-wrap">
+  <section class="card">
+<h2>Overall progress (0 feature requests · 0 modules)</h2>
+<div class="bar">
+  <i class="seg-done" style="width:0%" title="done 0"></i>
+  <i class="seg-active" style="width:0%" title="in flight 0"></i>
+  <i class="seg-hold" style="width:0%" title="on hold 0"></i>
+</div>
+<div class="counts">
+  <span><b>0</b> done <span class="muted">(0%)</span></span>
+  <span><b>0</b> in flight</span>
+  <span><b>0</b> draft</span>
+  <span><b>0</b> on hold</span>
+  <span><b>13</b> releases</span>
+  <span class="muted">latest v1.0.12 · 2026-06-24</span>
+</div></section>
+  
+  
+<div class="legend">
+  <span><i class="dot seg-done"></i> done / closed</span>
+  <span><i class="dot seg-active"></i> in flight (ready_to_implement → testing)</span>
+  <span><i class="dot" style="background:var(--cs-color-border-default)"></i> draft</span>
+  <span><i class="dot seg-hold"></i> on hold</span>
+  <span class="muted">chips link to each FR's page · hover for title + status</span>
+</div>
+  <nav class="hub-tabs" role="tablist">
+    <a class="hub-tab" role="tab" href="#roadmap" data-tab="roadmap">Roadmap</a>
+    <a class="hub-tab" role="tab" href="#backlog" data-tab="backlog">Backlog</a>
+    <a class="hub-tab" role="tab" href="#changelog" data-tab="changelog">Changelog</a>
+  </nav>
+  <section class="hub-panel" id="roadmap" role="tabpanel">
+<div class="grid">
+
+
+</div>
+<h2 class="section-h">Module rollups</h2>
+<table><thead><tr><th>module</th><th>total</th><th>draft</th><th>ready_to_implement</th><th>implementing</th><th>ready_to_review</th><th>reviewing</th><th>ready_to_test</th><th>testing</th><th>done</th><th>on_hold</th><th>closed</th></tr></thead><tbody>
+
+</tbody></table></section>
+  <section class="hub-panel" id="backlog" role="tabpanel">
+<p class="hub-note">Generated view - FR frontmatter is the record of truth; agents write through BACKLOG.md.</p>
+<div class="bk-facets">
+  <select id="bk-module"><option value="">all modules</option></select>
+  <select id="bk-class"><option value="">all classes</option><option value="product">product</option><option value="improvement">improvement</option></select>
+  <select id="bk-priority"><option value="">all priorities</option></select>
+  <select id="bk-status"><option value="">all statuses</option><option value="draft">draft</option><option value="ready_to_implement">ready_to_implement</option><option value="implementing">implementing</option><option value="ready_to_review">ready_to_review</option><option value="reviewing">reviewing</option><option value="ready_to_test">ready_to_test</option><option value="testing">testing</option><option value="done">done</option><option value="on_hold">on_hold</option><option value="closed">closed</option></select>
+</div>
+<table id="bk-table"><thead><tr><th>id</th><th>title</th><th>module</th><th>class</th><th>priority</th><th>status</th></tr></thead><tbody>
+
+</tbody></table>
+<script>
+(function () {
+  var sel = ['bk-module','bk-class','bk-priority','bk-status'].map(function (i) { return document.getElementById(i); });
+  var keys = ['module','class','priority','status'];
+  function apply() {
+    document.querySelectorAll('#bk-table tbody tr').forEach(function (tr) {
+      tr.hidden = !sel.every(function (s, i) { return !s.value || tr.dataset[keys[i]] === s.value; });
+    });
+  }
+  sel.forEach(function (s) { s.addEventListener('change', apply); });
+})();
+</script></section>
+  <section class="hub-panel" id="changelog" role="tabpanel"><div class="phases">
+<article class="phase now">
+  <span class="tick">★</span>
+  <div><b>v1.0.12 <span class="muted">· 2026-06-24</span></b>
+  <span>- 4a766b8 Merge pull request #2 from cyberskill-official/chore/rebrand-to-cyberskill<br>- 84d4c31 chore(brand): rebrand gam to CyberSkill (cyberskill-official/gam)<br>- 1db1d51 Merge pull request #1 from zintaen/auto/gam-absorb<br>- f55d97c fix(security): rotate updater public key, scrub old password from docs<br>- 55d8adb fix(ci): install Linux Tauri deps, satisfy clippy 1.96<br>- 0f2a013 ci: make CI self-contained, unblock dependency review<br>- 130cf43 feat(privacy): add consent toggle for shell-history ranking<br>- 963a56c ci(security): add cargo-deny supply-chain gate<br>- cb61f74 refactor(security): remove unused shell and opener Tauri plugins<br>- c6ba8ec test(git-service): add git subprocess integration tests<br>- 5f9957f chore: portable harness paths, notarization wiring, docs, awh re-baseline<br>- 5b1a920 fix(quality): green the lint, type, and test gate<br>- 98a381d build(deps): bump Tauri to latest (api 2.11.1, tauri 2.11.3, plugins)<br>- c80c846 chore: adopt auto-work-harness + bump @cyberskill/shared to 3.21.0<br>- 015ee18 fix(test): in-memory localStorage shim so useTheme tests pass (217/225 -&gt; 225/225)<br>- a938569 fix</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.11 <span class="muted">· 2026-03-03</span></b>
+  <span>- 218a3cb feat: use embed font instead of online font</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.10 <span class="muted">· 2026-03-03</span></b>
+  <span>- 2e087e8 feat: add more test cases</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.9 <span class="muted">· 2026-03-02</span></b>
+  <span>- aef9def feat: refactor</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.8 <span class="muted">· 2026-03-02</span></b>
+  <span>- b2e0bb4 feat: enhance release changelog</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.7 <span class="muted">· 2026-03-02</span></b>
+  <span>- a2e3375 feat: alias group</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.6 <span class="muted">· 2026-03-02</span></b>
+  <span>- ee8115b feat: release process<br>- 374dc07 fix: documents</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.5 <span class="muted">· 2026-03-02</span></b>
+  <span>- cecad91 fix: pnpm-lock.json</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.4 <span class="muted">· 2026-03-02</span></b>
+  <span>- 66c3b85 feat: auto update</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.3 <span class="muted">· 2026-03-02</span></b>
+  <span>- 2af5826 fix: releaseDraft to false</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.2 <span class="muted">· 2026-03-02</span></b>
+  <span>- 09e8b9b chore(release): bump version to v1.0.1<br>- dc4e3c6 feat: update libs</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.1 <span class="muted">· 2026-03-02</span></b>
+  <span>- dc4e3c6 feat: update libs</span></div>
+</article>
+
+<article class="phase done">
+  <span class="tick">✓</span>
+  <div><b>v1.0.0 <span class="muted">· 2026-02-20</span></b>
+  <span>### Added<br>- **Alias Library** — Browse 270+ predefined Git aliases from [GitAlias/gitalias](https://github.com/GitAlias/gitalias) directly inside the Create/Edit form.<br>- **Library Picker UI** — Searchable, category-filterable modal with animated alias cards matching the notebook aesthetic.<br>- **Multi-Line Command Support** — Command field uses a `&lt;textarea&gt;` to accommodate complex shell-function aliases.<br>- **Alias Suggestions** — 5 intelligent schemes (semantic, abbreviation, vowel removal, first-letter combination, smart truncation) generate alias name candidates when creating new aliases.<br>- **Suggestion Chips UI** — Clickable pill-shaped chips in the Create Alias form showing suggested names with scheme icons.<br>- **Conflict Detection** — Suggestions automatically filter out names already taken by existing aliases.<br>- **Telemetry Ranking (⭐)** — Natively processes `~/.zsh_history` and `~/.bash_history` on Mac/Linux to statistically rank your most frequently utilized Git aliases. Toggle the ranking column globally!<br>- **Multi-Repository Tracking** — The `All` Scope now correctly multiplexes Local aliases entirely, interpolating their target repositories explicitly onto the table scopes.<br>- **Clear Active Folder** — Use the `[✕]` toggle on the Toolbar to safely deselect your targeted repository to fluidly pull from the global workspace without bounds.<br>- **Alias Management** — Create, edit, and delete Git aliases through a professional GUI.<br>- **Searchable List** — Sortable table with instant filtering by name or command.<br>- **Scope Toggle** — Switch between Global, Local, and All alias scopes.<br>- **Clickable Folders** — Natively open specific Local Repositories directly to macOS/OSX Finder via clickable scope badges.<br>- **Duplicate Safety** — Modifying a Global Alias and re-assigning it to Local space natively registers as a duplication to protect the original configuration.<br>- **Command Validation** — Real-time warnings for dangerous patterns (`push --force`, `rm -rf`, `reset --hard`, shell commands).<br>- **Live Preview** — See the resulting `git &lt;alias&gt;` command as you type.<br>- **Import / Export** — Share alias collections as JSON files with schema validation.<br>- **Documentation Suite** — Comprehensive `docs/` repository including a User Manual, Changelog, Contributing guidelines, and Release guide.<br>- **Premium UI** — Glassmorphism, gradient accents, smooth micro-animations, Inter + JetBrains Mono typography with a fluid Light/Dark mode switcher.<br>- **Responsive Fluidity** — Complete modal and dialog scaling functionality to prevent truncation on 13&quot; laptop screens.<br>- **Keyboard Shortcuts** — ⌘F to search, Escape to close modals.<br>- **Security** — Context isolation, no Node integration in renderer, `execFile` for all subprocess calls.<br>- **Unit Tests** — 82 tests across 8 suites covering GitService, suggestions, alias library, components, and type definitions.<br>### Changed<br>- **Create Alias Form** — Command field now appears above the name field so suggestions can react to command input. &quot;📚 Browse Alias Library&quot; button added above command/name fields.<br>- **UX Scopes** — Removed tracking metrics and auto-backups out of core Electron binary to simplify release vector.<br>### New Files<br>- `src/services/gitalias-library.ts` — 270+ aliases embedded as static data with search, category, and get-all APIs<br>- `src/components/AliasLibraryPicker.tsx` — Library picker modal component<br>- `src/services/suggestion-service.ts` — 5 suggestion schemes with priority ranking<br>- `src/components/SuggestionChips.tsx` — Suggestion chip UI component<br>- `tests/gitalias-library.test.ts` — Library service unit tests<br>- `tests/suggestion-service.test.ts` — 18 tests for suggestion service<br>---<br># Changelog<br>All notable changes to this project will be documented in this file.<br>The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).<br>If GAM saves you time and brainpower, consider fueling its development with a banana!<br>[&lt;img src=&quot;https://cdn.buymeacoffee.com/buttons/v2/default-violet.png&quot; alt=&quot;Buy Me A Banana&quot; height=&quot;50&quot;&gt;](https://buymeacoffee.com/zintaen)<br>Or scan the QR Code:<br>&lt;img src=&quot;docs/screenshots/buy-me-a-coffee.png&quot; alt=&quot;Buy Me A Banana QR&quot; width=&quot;200&quot; style=&quot;border-radius: 12px;&quot;&gt;</span></div>
+</article></div></section>
+  <footer class="hub-foot">gam — generated at unversioned (ac65b429dac1). Markdown is the record of truth; this page only renders it.</footer>
+</main>
+<script>
+(function () {
+  var tabs = document.querySelectorAll('.hub-tab');
+  var panels = { roadmap: document.getElementById('roadmap'),
+                 backlog: document.getElementById('backlog'),
+                 changelog: document.getElementById('changelog') };
+  function show(name) {
+    if (!panels[name]) name = 'roadmap';
+    Object.keys(panels).forEach(function (k) { panels[k].hidden = (k !== name); });
+    tabs.forEach(function (t) { t.setAttribute('aria-selected', t.dataset.tab === name ? 'true' : 'false'); });
+  }
+  window.addEventListener('hashchange', function () { show(location.hash.slice(1)); });
+  show(location.hash.slice(1) || 'roadmap');
+})();
+</script>
+<noscript><style>.hub-panel[hidden]{display:block !important}</style></noscript>
+</body>
+</html>
