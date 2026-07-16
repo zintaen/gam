@@ -55,7 +55,7 @@ Why: there is no vulnerability disclosure channel, no support statement, no issu
 
 Priority P0. Estimate 3 h. Deps: none.
 
-Files: `SECURITY.md` (repo root), `docs/SUPPORT.md`, `.github/ISSUE_TEMPLATE/bug_report.yml`, `.github/ISSUE_TEMPLATE/feature_request.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `.github/CODEOWNERS`.
+Files: `SECURITY.md` (repo root), `docs/SUPPORT.md`, `.github/ISSUE_TEMPLATE/bug_report.yml`, `.github/ISSUE_TEMPLATE/task.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `.github/CODEOWNERS`.
 
 Steps:
 1. SECURITY.md: report privately via GitHub private vulnerability reporting or security@cyberskill.world; supported versions = latest release; acknowledgment target 72 h, fix target 30 d for high severity; no bounty program; credit policy.
