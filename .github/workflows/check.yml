@@ -17,7 +17,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        uses: actions/checkout@v7  # v6.0.1
 
       - name: Env & Deps
         uses: ./.github/actions/env-deps
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        uses: actions/checkout@v7  # v6.0.1
 
       - name: Env & Deps
         uses: ./.github/actions/env-deps
@@ -116,7 +116,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+        uses: actions/checkout@v7  # v6.0.1
 
       # Non-blocking: needs the repo Dependency Graph enabled. Rust deps are
       # already gated by cargo-deny + cargo-audit, npm by pnpm audit above.
