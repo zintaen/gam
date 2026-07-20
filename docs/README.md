@@ -8,10 +8,7 @@ Made by [CyberSkill](https://www.cyberskill.world), open source, and used by our
 
 [![GitHub Stars](https://img.shields.io/github/stars/cyberskill-official/gam?style=social)](https://github.com/cyberskill-official/gam)
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri-FFC131.svg?logo=tauri)](https://tauri.app/)
-[![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![Built with Tauri](https://img.shields.io/badge/built%20with-Tauri-FFC131.svg?logo=tauri)](https://tauri.app/) [![React](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6.svg?logo=typescript)](https://www.typescriptlang.org/)
 
 <br/>
 

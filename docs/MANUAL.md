@@ -1,7 +1,6 @@
 # GAM — User Manual
 
-GAM (Git Alias Manager) is a desktop app for managing Git aliases across global and local scopes.
-This manual covers every feature.
+GAM (Git Alias Manager) is a desktop app for managing Git aliases across global and local scopes. This manual covers every feature.
 
 ## 1. Alias List
 
